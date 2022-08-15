@@ -3,7 +3,6 @@ package chads.util;
 import chads.model.User;
 import org.json.JSONObject;
 
-
 import java.util.Base64;
 
 public class JwtUtils {

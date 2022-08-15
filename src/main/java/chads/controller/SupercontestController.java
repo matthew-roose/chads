@@ -198,7 +198,7 @@ public class SupercontestController {
         }
     }
 
-    @PutMapping("/gradePicks")
+    @PutMapping("/grade-picks")
     public ResponseEntity<List<SupercontestEntryWeekAndPicks>> gradePicks(
             @RequestHeader("Authorization") String googleJwt) {
         try {

@@ -93,7 +93,7 @@ public class SupercontestService {
         }
         SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
         User viewingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!viewingUser.getUserSecret().equals(weekAndPicks.getUserSecret())) {
+        if (!weekAndPicks.getUserSecret().equals(viewingUser.getUserSecret())) {
             // hide picks that haven't started yet
             weekAndPicks.getPicks().forEach(pick -> {
                 if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
@@ -234,7 +234,7 @@ public class SupercontestService {
             throw new NotFoundException();
         }
         SupercontestPool poolToBeJoined = poolToBeJoinedOptional.get();
-        if (poolToBeJoined.getJoinType() == PoolJoinType.PRIVATE && !password.equals(poolToBeJoined.getPassword())) {
+        if (poolToBeJoined.getJoinType() == PoolJoinType.PRIVATE && !poolToBeJoined.getPassword().equals(password)) {
             throw new UnauthorizedException();
         }
         User enrollingUser = JwtUtils.getUserFromJwt(googleJwt);

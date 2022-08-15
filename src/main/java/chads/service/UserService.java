@@ -16,13 +16,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final SupercontestService supercontestService;
+    private final SportsbookService sportsbookService;
 
     public User signUpOrSignIn(String googleJwt) {
         User userInfo = JwtUtils.getUserFromJwt(googleJwt);
         if (!userRepository.existsById(userInfo.getUsername())) {
             User user = userRepository.save(userInfo);
             supercontestService.createEntry(googleJwt);
-            // also create eliminator, sportsbook account, etc.
+            sportsbookService.createAccount(googleJwt);
+            // also create eliminator?
             return user;
         }
         Optional<User> existingUser = userRepository.findByUserSecret(userInfo.getUserSecret());

@@ -4,7 +4,6 @@ import chads.enums.Team;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Immutable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,7 +17,6 @@ import javax.persistence.Table;
 @Setter
 @NoArgsConstructor
 @Entity
-@Immutable
 @Table(name = "sc_entry_pick_stats")
 @IdClass(SupercontestEntryPickStatsId.class)
 public class SupercontestEntryPickStats {
