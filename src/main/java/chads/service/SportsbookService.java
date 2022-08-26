@@ -218,7 +218,7 @@ public class SportsbookService {
             }
             // get corresponding game line
             Optional<GameLine> pickedGameOptional = officialGameLines.stream().filter(gameLine ->
-                    gameLine.getId().equals(betLeg.getGameId())).findAny();
+                    gameLine.getGameId().equals(betLeg.getGameId())).findAny();
             // invalid gameId for bet leg
             if (pickedGameOptional.isEmpty()) {
                 throw new IllegalArgumentException();
@@ -351,6 +351,9 @@ public class SportsbookService {
     }
 
     public SportsbookAccountAndPools joinPool(String googleJwt, String poolName, String password) {
+        if (Instant.now().toEpochMilli() > 1662682800000L) {
+            throw new UnauthorizedException();
+        }
         Optional<SportsbookPool> poolToBeJoinedOptional =
                 sportsbookPoolRepository.findById(poolName);
         if (poolToBeJoinedOptional.isEmpty()) {
@@ -385,7 +388,7 @@ public class SportsbookService {
         allOpenBetLegs.forEach(betLeg -> {
             // get corresponding game line
             Optional<GameLine> pickedGameOptional = officialGameLines.stream().filter(gameLine ->
-                    gameLine.getId().equals(betLeg.getGameId())).findAny();
+                    gameLine.getGameId().equals(betLeg.getGameId())).findAny();
             // invalid gameId for bet leg
             if (pickedGameOptional.isEmpty()) {
                 throw new IllegalArgumentException();

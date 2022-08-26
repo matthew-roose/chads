@@ -21,9 +21,9 @@ import javax.persistence.Table;
 @Table(name = "game_line")
 public class GameLine {
     @Id
-    @Column
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer gameId;
 
     @Column(name = "week_number")
     private Integer weekNumber;

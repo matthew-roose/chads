@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface GameLineRepository extends JpaRepository<GameLine, Integer> {
     @Query(value = "SELECT MAX(week_number) FROM game_line", nativeQuery = true)
-    Integer findCurrentGameWeek();
+    Integer findCurrentWeekNumber();
 
     List<GameLine> findAllByWeekNumber(Integer weekNumber);
 

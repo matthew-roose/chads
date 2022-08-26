@@ -65,8 +65,8 @@ CREATE TABLE `supercontest_pick` (
   `home_team` varchar(45) NOT NULL,
   `away_team` varchar(45) NOT NULL,
   `home_spread` decimal(3,1) NOT NULL,
-  `home_team_score` int DEFAULT NULL,
-  `away_team_score` int DEFAULT NULL,
+  `home_score` int DEFAULT NULL,
+  `away_score` int DEFAULT NULL,
   `result` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sc_pick_entry_week_id_fk_idx` (`entry_week_id`),
@@ -103,7 +103,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sc_entry_fade_stats` AS select `sc_entry_fade_stats_helper`.`username` AS `username`,`sc_entry_fade_stats_helper`.`faded_team` AS `faded_team`,(select sum(`sq1`.`count`) from `sc_entry_fade_stats_helper` `sq1` where ((`sq1`.`faded_team` = `sc_entry_fade_stats_helper`.`faded_team`) and (`sq1`.`username` = `sc_entry_fade_stats_helper`.`username`))) AS `total`,(select `sq2`.`count` from `sc_entry_fade_stats_helper` `sq2` where ((`sq2`.`faded_team` = `sc_entry_fade_stats_helper`.`faded_team`) and (`sq2`.`result` = 'WIN') and (`sq2`.`username` = `sc_entry_fade_stats_helper`.`username`))) AS `wins`,(select `sq3`.`count` from `sc_entry_fade_stats_helper` `sq3` where ((`sq3`.`faded_team` = `sc_entry_fade_stats_helper`.`faded_team`) and (`sq3`.`result` = 'LOSS') and (`sq3`.`username` = `sc_entry_fade_stats_helper`.`username`))) AS `losses`,(select `sq4`.`count` from `sc_entry_fade_stats_helper` `sq4` where ((`sq4`.`faded_team` = `sc_entry_fade_stats_helper`.`faded_team`) and (`sq4`.`result` = 'PUSH') and (`sq4`.`username` = `sc_entry_fade_stats_helper`.`username`))) AS `pushes` from `sc_entry_fade_stats_helper` group by `sc_entry_fade_stats_helper`.`username`,`sc_entry_fade_stats_helper`.`faded_team` order by `sc_entry_fade_stats_helper`.`username`,`total` desc,`wins` desc,`pushes` desc;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sc_public_pick_stats` AS select `sew`.`week_number` AS `week_number`,`sp`.`picked_team` AS `picked_team`,`sp`.`opposing_team` AS `opposing_team`,`sp`.`home_team` AS `home_team`,count(0) AS `times_picked`,`sp`.`home_spread` AS `home_spread`,`sp`.`home_team_score` AS `home_team_score`,`sp`.`away_team_score` AS `away_team_score`,`sp`.`result` AS `result` from (`supercontest_entry_week` `sew` join `supercontest_pick` `sp` on((`sew`.`id` = `sp`.`entry_week_id`))) group by `sew`.`week_number`,`sp`.`picked_team`,`sp`.`opposing_team`,`sp`.`home_team`,`sp`.`home_spread`,`sp`.`home_team_score`,`sp`.`away_team_score`,`sp`.`result` order by `times_picked` desc;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sc_public_pick_stats` AS select `sew`.`week_number` AS `week_number`,`sp`.`picked_team` AS `picked_team`,`sp`.`opposing_team` AS `opposing_team`,`sp`.`home_team` AS `home_team`,count(0) AS `times_picked`,`sp`.`home_spread` AS `home_spread`,`sp`.`home_score` AS `home_score`,`sp`.`away_score` AS `away_score`,`sp`.`result` AS `result` from (`supercontest_entry_week` `sew` join `supercontest_pick` `sp` on((`sew`.`id` = `sp`.`entry_week_id`))) group by `sew`.`week_number`,`sp`.`picked_team`,`sp`.`opposing_team`,`sp`.`home_team`,`sp`.`home_spread`,`sp`.`home_score`,`sp`.`away_score`,`sp`.`result` order by `times_picked` desc;
 
 CREATE TABLE `sportsbook_account` (
   `username` varchar(45) NOT NULL,
@@ -152,8 +152,8 @@ CREATE TABLE `sportsbook_bet_leg` (
   `game_total` decimal(3,1) NOT NULL,
   `home_team` varchar(45) NOT NULL,
   `away_team` varchar(45) NOT NULL,
-  `home_team_score` int DEFAULT NULL,
-  `away_team_score` int DEFAULT NULL,
+  `home_score` int DEFAULT NULL,
+  `away_score` int DEFAULT NULL,
   `result` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sb_bet_leg_bet_id_fk` (`bet_id`),

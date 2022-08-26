@@ -52,11 +52,11 @@ public class SportsbookBetLeg {
     @Enumerated(EnumType.STRING)
     private Team awayTeam;
 
-    @Column(name = "home_team_score")
-    private Integer homeTeamScore;
+    @Column(name = "home_score")
+    private Integer homeScore;
 
-    @Column(name = "away_team_score")
-    private Integer awayTeamScore;
+    @Column(name = "away_score")
+    private Integer awayScore;
 
     @Column(name = "result")
     @Enumerated(EnumType.STRING)
@@ -68,8 +68,8 @@ public class SportsbookBetLeg {
     private SportsbookBet bet;
 
     public void setScoresAndResult(GameLine gameLine) {
-        homeTeamScore = gameLine.getHomeScore();
-        awayTeamScore = gameLine.getAwayScore();
+        homeScore = gameLine.getHomeScore();
+        awayScore = gameLine.getAwayScore();
         result = gameLine.calculateBetLegResult(betLegType);
     }
 }

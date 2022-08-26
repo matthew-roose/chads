@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,11 +62,16 @@ public class SupercontestService {
         return entryAndPools;
     }
 
+    public SupercontestEntryAndEntryWeeks getAllEntryWeeksForUser(String username) {
+        return supercontestEntryAndEntryWeeksRepository.findByUsername(username);
+    }
+
     public List<SupercontestEntryPickStats> getEntryPickStats(String username) {
         List<SupercontestEntryPickStats> stats = supercontestEntryPickStatsRepository.findAllByUsername(username);
         if (stats.isEmpty()) {
             throw new NotFoundException();
         }
+        stats.forEach(this::setNullsToZero);
         return stats;
     }
 
@@ -74,6 +80,7 @@ public class SupercontestService {
         if (stats.isEmpty()) {
             throw new NotFoundException();
         }
+        stats.forEach(this::setNullsToZero);
         return stats;
     }
 
@@ -86,38 +93,18 @@ public class SupercontestService {
     }
 
     public SupercontestEntryWeekAndPicks getEntryWeekAndPicks(String googleJwt, String username, Integer weekNumber) {
-        Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
-                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
-        if (weekAndPicksOptional.isEmpty()) {
-            throw new NotFoundException();
-        }
-        SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
-        User viewingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!weekAndPicks.getUserSecret().equals(viewingUser.getUserSecret())) {
-            // hide picks that haven't started yet
-            weekAndPicks.getPicks().forEach(pick -> {
-                if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
-                    pick.setGameId(null);
-                    pick.setTimestamp(null);
-                    pick.setPickedTeam(null);
-                    pick.setHomeTeam(null);
-                    pick.setAwayTeam(null);
-                    pick.setHomeSpread(null);
-                }
-            });
-
-        }
-        weekAndPicks.setUserSecret(null);
-        return weekAndPicks;
+        return getEntryWeekAndPicksHelper(googleJwt, username, weekNumber);
     }
 
-    public SupercontestEntryWeekAndPicks saveEntryWeekAndPicks(
-            String googleJwt, String username, Integer weekNumber, Set<SupercontestPick> newPicks) {
+    // picks only need gameId and pickedTeam
+    public SupercontestEntryWeekAndPicks saveCurrentEntryWeekAndPicks(
+            String googleJwt, String username, List<SupercontestPick> newPicks) {
         if (newPicks.size() > 5) {
             throw new IllegalArgumentException();
         }
+        int currentWeekNumber = gameLineRepository.findCurrentWeekNumber();
         Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
-                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
+                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, currentWeekNumber);
         if (weekAndPicksOptional.isEmpty()) {
             throw new NotFoundException();
         }
@@ -134,11 +121,11 @@ public class SupercontestService {
                     throw new IllegalArgumentException();
                 }
         });
-        List<GameLine> officialGameLines = gameLineRepository.findAllByWeekNumber(weekNumber);
+        List<GameLine> officialGameLines = gameLineRepository.findAllInCurrentWeek();
         newPicks.forEach(newPick -> {
             Optional<GameLine> pickedGameOptional =
                     officialGameLines.stream().filter(gameLine ->
-                            gameLine.getId().equals(newPick.getGameId())).findAny();
+                            gameLine.getGameId().equals(newPick.getGameId())).findAny();
             // invalid gameId for pick
             if (pickedGameOptional.isEmpty()) {
                 throw new IllegalArgumentException();
@@ -163,13 +150,18 @@ public class SupercontestService {
             newPick.setEntryWeekId(weekAndPicks.getId());
             // set other properties using GameLine with corresponding gameId (back end source of truth)
             newPick.setTimestamp(pickedGame.getTimestamp());
+            if (newPick.getPickedTeam() == pickedGame.getHomeTeam()) {
+                newPick.setOpposingTeam(pickedGame.getAwayTeam());
+            } else {
+                newPick.setOpposingTeam(pickedGame.getHomeTeam());
+            }
             newPick.setHomeTeam(pickedGame.getHomeTeam());
             newPick.setAwayTeam(pickedGame.getAwayTeam());
             newPick.setHomeSpread(pickedGame.getHomeSpread());
             // if game has been played, re-set scores and result since the pick is recreated as a new record
             if (pickedGame.getHomeScore() != null) {
-                newPick.setHomeTeamScore(pickedGame.getHomeScore());
-                newPick.setAwayTeamScore(pickedGame.getAwayScore());
+                newPick.setHomeScore(pickedGame.getHomeScore());
+                newPick.setAwayScore(pickedGame.getAwayScore());
                 if (pickedGame.calculateCoveringTeam() == newPick.getPickedTeam()) {
                     newPick.setResult(Result.WIN);
                 } else if (pickedGame.calculateCoveringTeam() == null) {
@@ -180,7 +172,7 @@ public class SupercontestService {
             }
         });
         weekAndPicks.updatePicks(newPicks);
-        weekAndPicks.setUserSecret(null);
+        // TODO: remove user secret from this and below methods
         return supercontestEntryWeekAndPicksRepository.save(weekAndPicks);
     }
 
@@ -228,6 +220,9 @@ public class SupercontestService {
     }
 
     public SupercontestEntryAndPools joinPool(String googleJwt, String poolName, String password) {
+        if (Instant.now().toEpochMilli() > 1662682800000L) {
+            throw new UnauthorizedException();
+        }
         Optional<SupercontestPool> poolToBeJoinedOptional =
                 supercontestPoolRepository.findById(poolName);
         if (poolToBeJoinedOptional.isEmpty()) {
@@ -256,7 +251,7 @@ public class SupercontestService {
         // score current EntryWeeks
         List<GameLine> scoredGames = gameLineRepository.findAllInCurrentWeek();
         List<SupercontestEntryWeekAndPicks> entryWeeksInCurrentWeek =
-                supercontestEntryWeekAndPicksRepository.findAllByWeekNumber(gameLineRepository.findCurrentGameWeek());
+                supercontestEntryWeekAndPicksRepository.findAllByWeekNumber(gameLineRepository.findCurrentWeekNumber());
         entryWeeksInCurrentWeek.forEach(entryWeek -> {
             entryWeek.setWeekScore(0.0);
             entryWeek.setWeekWins(0);
@@ -264,15 +259,15 @@ public class SupercontestService {
             entryWeek.setWeekPushes(0);
             entryWeek.getPicks().forEach(pick -> {
                 Optional<GameLine> pickedGameOptional = scoredGames.stream().filter(scoredGame ->
-                        scoredGame.getId().equals(pick.getGameId())).findAny();
+                        scoredGame.getGameId().equals(pick.getGameId())).findAny();
                 if (pickedGameOptional.isEmpty()) {
                     throw new NotFoundException();
                 }
                 GameLine pickedGame = pickedGameOptional.get();
                 // game has been played and pick can be graded
                 if (pickedGame.getHomeScore() != null) {
-                    pick.setHomeTeamScore(pickedGame.getHomeScore());
-                    pick.setAwayTeamScore(pickedGame.getAwayScore());
+                    pick.setHomeScore(pickedGame.getHomeScore());
+                    pick.setAwayScore(pickedGame.getAwayScore());
                     Team coveringTeam = pickedGame.calculateCoveringTeam();
                     if (coveringTeam == pick.getPickedTeam()) {
                         pick.setResult(Result.WIN);
@@ -303,5 +298,58 @@ public class SupercontestService {
         });
         supercontestEntryAndEntryWeeksRepository.saveAll(entries);
         return entryWeeksInCurrentWeek;
+    }
+
+    private SupercontestEntryWeekAndPicks getEntryWeekAndPicksHelper(
+            String googleJwt, String username, Integer weekNumber) {
+        Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
+                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
+        if (weekAndPicksOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
+        weekAndPicks.getPicks().sort(Comparator.comparingInt(SupercontestPick::getGameId));
+        User viewingUser = JwtUtils.getUserFromJwt(googleJwt);
+        if (!weekAndPicks.getUserSecret().equals(viewingUser.getUserSecret())) {
+            // hide picks that haven't started yet
+            weekAndPicks.getPicks().forEach(pick -> {
+                if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
+                    pick.setGameId(null);
+                    pick.setTimestamp(null);
+                    pick.setPickedTeam(null);
+                    pick.setOpposingTeam(null);
+                    pick.setHomeTeam(null);
+                    pick.setAwayTeam(null);
+                    pick.setHomeSpread(null);
+                }
+            });
+
+        }
+        weekAndPicks.setUserSecret(null);
+        return weekAndPicks;
+    }
+
+    private void setNullsToZero(SupercontestEntryPickStats team) {
+        if (team.getWins() == null) {
+            team.setWins(0);
+        }
+        if (team.getLosses() == null) {
+            team.setLosses(0);
+        }
+        if (team.getPushes() == null) {
+            team.setPushes(0);
+        }
+    }
+
+    private void setNullsToZero(SupercontestEntryFadeStats team) {
+        if (team.getWins() == null) {
+            team.setWins(0);
+        }
+        if (team.getLosses() == null) {
+            team.setLosses(0);
+        }
+        if (team.getPushes() == null) {
+            team.setPushes(0);
+        }
     }
 }

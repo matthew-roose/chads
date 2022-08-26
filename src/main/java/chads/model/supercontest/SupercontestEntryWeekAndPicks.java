@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,9 +40,9 @@ public class SupercontestEntryWeekAndPicks {
     private Integer weekPushes;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "entryWeek", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<SupercontestPick> picks;
+    private List<SupercontestPick> picks;
 
-    public void updatePicks(Set<SupercontestPick> newPicks) {
+    public void updatePicks(List<SupercontestPick> newPicks) {
         picks.clear();
         picks.addAll(newPicks);
     }

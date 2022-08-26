@@ -33,6 +33,10 @@ public class SupercontestPick {
     @Enumerated(EnumType.STRING)
     private Team pickedTeam;
 
+    @Column(name = "opposing_team")
+    @Enumerated(EnumType.STRING)
+    private Team opposingTeam;
+
     @Column(name = "home_team")
     @Enumerated(EnumType.STRING)
     private Team homeTeam;
@@ -44,11 +48,11 @@ public class SupercontestPick {
     @Column(name = "home_spread")
     private Double homeSpread;
 
-    @Column(name = "home_team_score")
-    private Integer homeTeamScore;
+    @Column(name = "home_score")
+    private Integer homeScore;
 
-    @Column(name = "away_team_score")
-    private Integer awayTeamScore;
+    @Column(name = "away_score")
+    private Integer awayScore;
 
     @Column(name = "result")
     @Enumerated(EnumType.STRING)

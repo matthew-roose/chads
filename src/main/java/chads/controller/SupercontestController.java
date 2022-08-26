@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
 import java.util.List;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/supercontest")
 @AllArgsConstructor(onConstructor_ = {@Autowired})
 public class SupercontestController {
@@ -35,6 +36,16 @@ public class SupercontestController {
             return new ResponseEntity<>(entry, HttpStatus.OK);
         } catch (NotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/entry/{username}/weekly-stats")
+    public ResponseEntity<SupercontestEntryAndEntryWeeks> getAllEntryWeeksForUser(@PathVariable String username) {
+        try {
+            SupercontestEntryAndEntryWeeks allEntryWeeks = supercontestService.getAllEntryWeeksForUser(username);
+            return new ResponseEntity<>(allEntryWeeks, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -101,15 +112,14 @@ public class SupercontestController {
         }
     }
 
-    @PutMapping("/entry/{username}/week/{weekNumber}")
-    public ResponseEntity<SupercontestEntryWeekAndPicks> saveEntryWeekAndPicks(
+    @PutMapping("/entry/{username}/current-week")
+    public ResponseEntity<SupercontestEntryWeekAndPicks> saveCurrentEntryWeekAndPicks(
             @RequestHeader("Authorization") String googleJwt,
             @PathVariable String username,
-            @PathVariable Integer weekNumber,
-            @RequestBody HashSet<SupercontestPick> picks) {
+            @RequestBody List<SupercontestPick> picks) {
         try {
             SupercontestEntryWeekAndPicks savedWeekAndPicks =
-                    supercontestService.saveEntryWeekAndPicks(googleJwt, username, weekNumber, picks);
+                    supercontestService.saveCurrentEntryWeekAndPicks(googleJwt, username, picks);
             return new ResponseEntity<>(savedWeekAndPicks, HttpStatus.OK);
         } catch (NotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -18,6 +18,10 @@ public class GameLineService {
 
     private final GameLineRepository gameLineRepository;
 
+    public Integer getCurrentWeekNumber() {
+        return gameLineRepository.findCurrentWeekNumber();
+    }
+
     public List<GameLine> getLinesByWeekNumber(Integer weekNumber) {
         return gameLineRepository.findAllByWeekNumber(weekNumber);
     }
@@ -42,7 +46,7 @@ public class GameLineService {
         }
         List<GameLine> gameLines = gameLineRepository.findAllInCurrentWeek();
         scoreUpdates.forEach(scoreUpdate -> gameLines.stream().filter(gameLine ->
-                gameLine.getId().equals(scoreUpdate.getGameId())).forEach(gameLine -> {
+                gameLine.getGameId().equals(scoreUpdate.getGameId())).forEach(gameLine -> {
                     gameLine.setHomeScore(scoreUpdate.getHomeTeamScore());
                     gameLine.setAwayScore(scoreUpdate.getAwayTeamScore());
                 }));

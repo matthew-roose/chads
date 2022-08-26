@@ -7,6 +7,9 @@ import java.util.Base64;
 
 public class JwtUtils {
     public static User getUserFromJwt(String googleJwt) {
+        if (googleJwt.isEmpty()) {
+            return new User("none", "none", "none", "none", "none");
+        }
         String base64payload = googleJwt.split("\\.")[1];
         JSONObject payload = new JSONObject(decode(base64payload));
         String userId = payload.getString("sub");

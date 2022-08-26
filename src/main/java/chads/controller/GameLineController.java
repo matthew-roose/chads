@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,10 +20,21 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@CrossOrigin
 @AllArgsConstructor(onConstructor_ = {@Autowired})
 public class GameLineController {
 
     private final GameLineService gameLineService;
+
+    @GetMapping("/current-week-number")
+    public ResponseEntity<Integer> getCurrentWeekNumber() {
+        try {
+            Integer currentWeekNumber = gameLineService.getCurrentWeekNumber();
+            return new ResponseEntity<>(currentWeekNumber, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @GetMapping("/lines/{weekNumber}")
     public ResponseEntity<List<GameLine>> getLinesByWeekNumber(@PathVariable Integer weekNumber) {
