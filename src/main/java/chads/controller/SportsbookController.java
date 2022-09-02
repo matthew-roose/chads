@@ -61,8 +61,8 @@ public class SportsbookController {
         }
     }
 
-    @GetMapping("/account/{username}/week/{weekNumber}/bets")
-    public ResponseEntity<List<SportsbookBet>> getAllBetsForUseAndWeekNNumber(
+    @GetMapping("/account/{username}/bets/week/{weekNumber}")
+    public ResponseEntity<List<SportsbookBet>> getAllBetsForUserAndWeekNNumber(
             @RequestHeader("Authorization") String googleJwt,
             @PathVariable String username,
             @PathVariable Integer weekNumber) {
@@ -175,34 +175,47 @@ public class SportsbookController {
     }
 
     @GetMapping("/leaderboard/best-parlays")
-    public ResponseEntity<List<SportsbookWeeklyUserStats>> getBestParlayForEveryWeek() {
+    public ResponseEntity<List<SportsbookBet>> getBestParlays() {
         try {
-            List<SportsbookWeeklyUserStats> bestParlays = sportsbookService.getBestParlayForEveryWeek();
+            List<SportsbookBet> bestParlays = sportsbookService.getBestParlays();
             return new ResponseEntity<>(bestParlays, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("/leaderboard/biggest-wins")
-    public ResponseEntity<List<SportsbookWeeklyUserStats>> getBiggestWinForEveryWeek() {
+    @GetMapping("/leaderboard/best-weeks")
+    public ResponseEntity<List<SportsbookWeeklyUserStats>> getBestWeeks() {
         try {
-            List<SportsbookWeeklyUserStats> biggestWins = sportsbookService.getBiggestWinForEveryWeek();
-            return new ResponseEntity<>(biggestWins, HttpStatus.OK);
+            List<SportsbookWeeklyUserStats> bestWeeks = sportsbookService.getBestWeeks();
+            return new ResponseEntity<>(bestWeeks, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("/leaderboard/biggest-losses")
-    public ResponseEntity<List<SportsbookWeeklyUserStats>> getBiggestLossForEveryWeek() {
+    @GetMapping("/leaderboard/worst-weeks")
+    public ResponseEntity<List<SportsbookWeeklyUserStats>> getWorstWeeks() {
         try {
-            List<SportsbookWeeklyUserStats> biggestLosses = sportsbookService.getBiggestLossForEveryWeek();
-            return new ResponseEntity<>(biggestLosses, HttpStatus.OK);
+            List<SportsbookWeeklyUserStats> worstWeeks = sportsbookService.getWorstWeeks();
+            return new ResponseEntity<>(worstWeeks, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/best-parlay/week/{weekNumber}")
+    public ResponseEntity<List<SportsbookBet>> getBestParlayOfTheWeek(@PathVariable Integer weekNumber) {
+        try {
+            List<SportsbookBet> bestParlay = sportsbookService.getBestParlayOfTheWeek(weekNumber);
+            return new ResponseEntity<>(bestParlay, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @GetMapping("/public-weekly-stats")
     public ResponseEntity<List<SportsbookWeeklyUserStats>> getPublicWeeklyStats() {

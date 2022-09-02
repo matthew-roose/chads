@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class ScoreUpdate {
     private Integer gameId;
-    private Integer homeTeamScore;
-    private Integer awayTeamScore;
+    private Integer homeScore;
+    private Integer awayScore;
 }

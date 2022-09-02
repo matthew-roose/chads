@@ -25,6 +25,9 @@ public class SportsbookWeeklyUserStats {
     @Column(name = "username")
     private String username;
 
+    @Column(name = "amount_wagered")
+    private Double amountWagered;
+
     @Column(name = "amount_won")
     private Double amountWon;
 

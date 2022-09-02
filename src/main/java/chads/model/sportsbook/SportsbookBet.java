@@ -11,7 +11,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.text.DecimalFormat;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -65,7 +65,7 @@ public class SportsbookBet {
     private Double profit;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "bet", cascade = CascadeType.ALL)
-    private Set<SportsbookBetLeg> betLegs;
+    private List<SportsbookBetLeg> betLegs;
 
 
     public SportsbookBet(SportsbookBet betToCopy) {
@@ -91,6 +91,9 @@ public class SportsbookBet {
             betLegs.forEach(betLeg -> {
                 if (betLeg.getTimestamp() > Instant.now().toEpochMilli()) {
                     betLeg.setGameId(null);
+                    betLeg.setTimestamp(null);
+                    betLeg.setBetLegType(null);
+                    betLeg.setOdds(null);
                     betLeg.setHomeTeam(null);
                     betLeg.setAwayTeam(null);
                     betLeg.setHomeSpread(null);
@@ -121,10 +124,13 @@ public class SportsbookBet {
                 effectiveOdds *= betLeg.getOdds();
             }
         });
-        odds = Double.valueOf(df.format(odds));
         toWinAmount = Double.valueOf(df.format(odds * wager - wager));
-        effectiveOdds = Double.valueOf(df.format(effectiveOdds));
+        if (toWinAmount > 1000000) {
+            throw new IllegalArgumentException();
+        }
+        odds = Double.valueOf(df.format(odds));
         effectiveToWinAmount = Double.valueOf(df.format(effectiveOdds * wager - wager));
+        effectiveOdds = Double.valueOf(df.format(effectiveOdds));
     }
 
     public void updateResultOddsAndWinAmount() {

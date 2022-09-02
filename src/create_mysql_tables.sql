@@ -11,7 +11,7 @@ CREATE TABLE `game_line` (
   `home_score` int DEFAULT NULL,
   `away_score` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `user` (
   `username` varchar(45) NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `supercontest_entry_week` (
   KEY `sc_entry_week_user_secret_fk_idx` (`user_secret`),
   CONSTRAINT `sc_entry_week_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
   CONSTRAINT `sc_entry_week_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `supercontest_pick` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -73,7 +73,7 @@ CREATE TABLE `supercontest_pick` (
   KEY `sc_pick_game_id_fk_idx` (`game_id`),
   CONSTRAINT `sc_pick_entry_week_id_fk` FOREIGN KEY (`entry_week_id`) REFERENCES `supercontest_entry_week` (`id`),
   CONSTRAINT `sc_pick_game_id_fk` FOREIGN KEY (`game_id`) REFERENCES `game_line` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `supercontest_pool` (
   `pool_name` varchar(45) NOT NULL,
@@ -108,12 +108,12 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 CREATE TABLE `sportsbook_account` (
   `username` varchar(45) NOT NULL,
   `user_secret` varchar(45) NOT NULL,
-  `available_balance` decimal(10,2) NOT NULL,
-  `pending_balance` decimal(10,2) NOT NULL,
+  `available_balance` decimal(20,2) NOT NULL,
+  `pending_balance` decimal(20,2) NOT NULL,
   `deposit_total` int NOT NULL,
   `cash_out_total` int NOT NULL,
-  `win_loss_total` decimal(10,2) NOT NULL,
-  `best_parlay_odds` decimal(10,2) NOT NULL,
+  `win_loss_total` decimal(20,2) NOT NULL,
+  `best_parlay_odds` decimal(20,2) NOT NULL,
   PRIMARY KEY (`username`),
   KEY `sb_account_user_secret_fk_idx` (`user_secret`),
   CONSTRAINT `sb_account_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
@@ -127,19 +127,19 @@ CREATE TABLE `sportsbook_bet` (
   `placed_timestamp` bigint NOT NULL,
   `week_number` int NOT NULL,
   `bet_type` varchar(45) NOT NULL,
-  `odds` decimal(10,2) NOT NULL,
-  `effective_odds` decimal(10,2) NOT NULL,
+  `odds` decimal(20,2) NOT NULL,
+  `effective_odds` decimal(20,2) NOT NULL,
   `wager` decimal(10,2) NOT NULL,
-  `to_win_amount` decimal(20,2) NOT NULL,
-  `effective_to_win_amount` decimal(20,2) NOT NULL,
+  `to_win_amount` decimal(10,2) NOT NULL,
+  `effective_to_win_amount` decimal(10,2) NOT NULL,
   `result` varchar(45) DEFAULT NULL,
-  `profit` decimal(20,2) DEFAULT NULL,
+  `profit` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sb_bet_username_fk_idx` (`username`),
   KEY `sb_bet_user_secret_fk_idx` (`user_secret`),
   CONSTRAINT `sb_bet_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
   CONSTRAINT `sb_bet_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `sportsbook_bet_leg` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -160,7 +160,7 @@ CREATE TABLE `sportsbook_bet_leg` (
   KEY `sb_bet_leg_game_id_fk_idx` (`game_id`),
   CONSTRAINT `sb_bet_leg_bet_id_fk` FOREIGN KEY (`bet_id`) REFERENCES `sportsbook_bet` (`id`),
   CONSTRAINT `sb_bet_leg_game_id_fk` FOREIGN KEY (`game_id`) REFERENCES `game_line` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `sportsbook_pool` (
    `pool_name` varchar(45) NOT NULL,
@@ -184,4 +184,8 @@ CREATE TABLE `sportsbook_pool_entry` (
      CONSTRAINT `sb_pool_entry_username_fk` FOREIGN KEY (`username`) REFERENCES `sportsbook_account` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sb_weekly_user_stats` AS select `oq`.`week_number` AS `week_number`,`oq`.`username` AS `username`,(select sum(`sq1`.`effective_to_win_amount`) from `sportsbook_bet` `sq1` where ((`sq1`.`username` = `oq`.`username`) and (`sq1`.`week_number` = `oq`.`week_number`) and (`sq1`.`result` = 'WIN'))) AS `amount_won`,(select sum(`sq2`.`wager`) from `sportsbook_bet` `sq2` where ((`sq2`.`username` = `oq`.`username`) and (`sq2`.`week_number` = `oq`.`week_number`) and (`sq2`.`result` = 'LOSS'))) AS `amount_lost`,(select sum(`sq3`.`profit`) from `sportsbook_bet` `sq3` where ((`sq3`.`username` = `oq`.`username`) and (`sq3`.`week_number` = `oq`.`week_number`))) AS `profit`,(select max(`sq4`.`effective_odds`) from `sportsbook_bet` `sq4` where ((`sq4`.`username` = `oq`.`username`) and (`sq4`.`week_number` = `oq`.`week_number`) and (`sq4`.`bet_type` = 'PARLAY') and (`sq4`.`result` = 'WIN'))) AS `best_parlay_odds` from `sportsbook_bet` `oq` group by `oq`.`username`,`oq`.`week_number` order by `oq`.`week_number`,`profit` desc;
+
+# not used
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sb_every_bet_and_bet_leg` AS select `sb`.`username` AS `username`,`sb`.`week_number` AS `week_number`,`sb`.`bet_type` AS `bet_type`,`sb`.`result` AS `bet_result`,`sb`.`wager` AS `wager`,`sb`.`profit` AS `profit`,`sbl`.`game_id` AS `game_id`,`sbl`.`bet_leg_type` AS `bet_leg_type`,`sbl`.`odds` AS `odds`,`sbl`.`home_team` AS `home_team`,`sbl`.`away_team` AS `away_team`,`sbl`.`result` AS `bet_leg_result` from (`sportsbook_bet` `sb` join `sportsbook_bet_leg` `sbl` on((`sbl`.`bet_id` = `sb`.`id`)));
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `sb_weekly_user_stats` AS select `oq`.`week_number` AS `week_number`,`oq`.`username` AS `username`,(select sum(`sq1`.`wager`) from `sportsbook_bet` `sq1` where ((`sq1`.`username` = `oq`.`username`) and (`sq1`.`week_number` = `oq`.`week_number`))) AS `amount_wagered`,(select sum(`sq2`.`effective_to_win_amount`) from `sportsbook_bet` `sq2` where ((`sq2`.`username` = `oq`.`username`) and (`sq2`.`week_number` = `oq`.`week_number`) and (`sq2`.`result` = 'WIN'))) AS `amount_won`,(select (sum(`sq3`.`wager`) * -(1)) from `sportsbook_bet` `sq3` where ((`sq3`.`username` = `oq`.`username`) and (`sq3`.`week_number` = `oq`.`week_number`) and (`sq3`.`result` = 'LOSS'))) AS `amount_lost`,(select sum(`sq4`.`profit`) from `sportsbook_bet` `sq4` where ((`sq4`.`username` = `oq`.`username`) and (`sq4`.`week_number` = `oq`.`week_number`))) AS `profit`,(select max(`sq5`.`effective_odds`) from `sportsbook_bet` `sq5` where ((`sq5`.`username` = `oq`.`username`) and (`sq5`.`week_number` = `oq`.`week_number`) and (`sq5`.`bet_type` = 'PARLAY') and (`sq5`.`result` = 'WIN'))) AS `best_parlay_odds` from `sportsbook_bet` `oq` group by `oq`.`username`,`oq`.`week_number` order by `oq`.`week_number`,`profit` desc;

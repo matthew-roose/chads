@@ -12,8 +12,8 @@ import chads.repository.GameLineRepository;
 import chads.repository.UserRepository;
 import chads.repository.supercontest.*;
 import chads.util.JwtUtils;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,10 +21,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
-@AllArgsConstructor(onConstructor_ = {@Autowired})
 public class SupercontestService {
 
     private final UserRepository userRepository;
@@ -39,6 +37,34 @@ public class SupercontestService {
     private final SupercontestEntryPickStatsRepository supercontestEntryPickStatsRepository;
     private final SupercontestEntryFadeStatsRepository supercontestEntryFadeStatsRepository;
     private final SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository;
+
+    @Autowired
+    public SupercontestService(UserRepository userRepository, GameLineRepository gameLineRepository,
+                               SupercontestEntryRepository supercontestEntryRepository,
+                               SupercontestEntryAndEntryWeeksRepository supercontestEntryAndEntryWeeksRepository,
+                               SupercontestEntryAndPoolsRepository supercontestEntryAndPoolsRepository,
+                               SupercontestEntryWeekRepository supercontestEntryWeekRepository,
+                               SupercontestEntryWeekAndPicksRepository supercontestEntryWeekAndPicksRepository,
+                               SupercontestPoolRepository supercontestPoolRepository,
+                               SupercontestPoolAndEntriesRepository supercontestPoolAndEntriesRepository,
+                               SupercontestEntryPickStatsRepository supercontestEntryPickStatsRepository,
+                               SupercontestEntryFadeStatsRepository supercontestEntryFadeStatsRepository,
+                               SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository) {
+        this.userRepository = userRepository;
+        this.gameLineRepository = gameLineRepository;
+        this.supercontestEntryRepository = supercontestEntryRepository;
+        this.supercontestEntryAndEntryWeeksRepository = supercontestEntryAndEntryWeeksRepository;
+        this.supercontestEntryAndPoolsRepository = supercontestEntryAndPoolsRepository;
+        this.supercontestEntryWeekRepository = supercontestEntryWeekRepository;
+        this.supercontestEntryWeekAndPicksRepository = supercontestEntryWeekAndPicksRepository;
+        this.supercontestPoolRepository = supercontestPoolRepository;
+        this.supercontestPoolAndEntriesRepository = supercontestPoolAndEntriesRepository;
+        this.supercontestEntryPickStatsRepository = supercontestEntryPickStatsRepository;
+        this.supercontestEntryFadeStatsRepository = supercontestEntryFadeStatsRepository;
+        this.supercontestPublicPickStatsRepository = supercontestPublicPickStatsRepository;
+    }
+    @Value("${adminId}")
+    private String adminId;
 
     public void createEntry(String googleJwt) {
         User creatingUser = JwtUtils.getUserFromJwt(googleJwt);
@@ -93,26 +119,46 @@ public class SupercontestService {
     }
 
     public SupercontestEntryWeekAndPicks getEntryWeekAndPicks(String googleJwt, String username, Integer weekNumber) {
-        return getEntryWeekAndPicksHelper(googleJwt, username, weekNumber);
-    }
-
-    // picks only need gameId and pickedTeam
-    public SupercontestEntryWeekAndPicks saveCurrentEntryWeekAndPicks(
-            String googleJwt, String username, List<SupercontestPick> newPicks) {
-        if (newPicks.size() > 5) {
-            throw new IllegalArgumentException();
-        }
-        int currentWeekNumber = gameLineRepository.findCurrentWeekNumber();
         Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
-                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, currentWeekNumber);
+                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
         if (weekAndPicksOptional.isEmpty()) {
             throw new NotFoundException();
         }
         SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
-        User requestingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!weekAndPicks.getUserSecret().equals(requestingUser.getUserSecret())) {
-            throw new UnauthorizedException();
+        weekAndPicks.getPicks().sort(Comparator.comparingInt(SupercontestPick::getGameId));
+        User viewingUser = JwtUtils.getUserFromJwt(googleJwt);
+        if (!weekAndPicks.getUserSecret().equals(viewingUser.getUserSecret())) {
+            // hide picks that haven't started yet
+            weekAndPicks.getPicks().forEach(pick -> {
+                if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
+                    pick.setTimestamp(null);
+                    pick.setPickedTeam(null);
+                    pick.setOpposingTeam(null);
+                    pick.setHomeTeam(null);
+                    pick.setAwayTeam(null);
+                    pick.setHomeSpread(null);
+                }
+            });
         }
+        weekAndPicks.setUserSecret(null);
+        return weekAndPicks;
+    }
+
+    // picks only need gameId and pickedTeam
+    public SupercontestEntryWeekAndPicks submitPicks(
+            String googleJwt, List<SupercontestPick> newPicks) {
+        if (newPicks.size() > 5) {
+            throw new IllegalArgumentException();
+        }
+        User requestingUser = JwtUtils.getUserFromJwt(googleJwt);
+        int currentWeekNumber = gameLineRepository.findCurrentWeekNumber();
+        Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
+                supercontestEntryWeekAndPicksRepository.findByUserSecretAndWeekNumber(
+                        requestingUser.getUserSecret(), currentWeekNumber);
+        if (weekAndPicksOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
         // any previously submitted pick for a game that has started must be in the new picks
         weekAndPicks.getPicks().forEach(existingPick -> {
             if (existingPick.getTimestamp() <= Instant.now().toEpochMilli() &&
@@ -184,6 +230,13 @@ public class SupercontestService {
         return supercontestEntryWeekRepository.findAllByWeekNumberOrderByWeekScoreDesc(weekNumber);
     }
 
+    public List<SupercontestEntryWeekAndPicks> getBestPicksOfTheWeek(Integer weekNumber) {
+        if (weekNumber < 1) {
+            throw new IllegalArgumentException();
+        }
+        return supercontestEntryWeekAndPicksRepository.getBestPicksOfTheWeek(weekNumber);
+    }
+
     public SupercontestPoolAndEntries getPoolAndEntries(String poolName) {
         Optional<SupercontestPoolAndEntries> poolAndEntriesOptional =
                 supercontestPoolAndEntriesRepository.findById(poolName);
@@ -202,6 +255,10 @@ public class SupercontestService {
     }
 
     public SupercontestPool createPool(String googleJwt, SupercontestPool pool) {
+        // max buy in is 100
+        if (pool.getBuyIn() > 100) {
+            throw new IllegalArgumentException();
+        }
         Optional<User> creatingUserOptional =
                 userRepository.findByUserSecret(JwtUtils.getUserFromJwt(googleJwt).getUserSecret());
         if (creatingUserOptional.isEmpty()) {
@@ -216,7 +273,17 @@ public class SupercontestService {
         if (supercontestPoolRepository.existsById(pool.getPoolName())) {
             throw new IllegalArgumentException();
         }
-        return supercontestPoolRepository.save(pool);
+        supercontestPoolRepository.save(pool);
+        // now join pool
+        Optional<SupercontestEntryAndPools> creatingEntryOptional =
+                supercontestEntryAndPoolsRepository.findByUserSecret(creatingUser.getUserSecret());
+        if (creatingEntryOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        SupercontestEntryAndPools creatingEntry = creatingEntryOptional.get();
+        creatingEntry.joinPool(pool);
+        supercontestEntryAndPoolsRepository.save(creatingEntry);
+        return pool;
     }
 
     public SupercontestEntryAndPools joinPool(String googleJwt, String poolName, String password) {
@@ -245,7 +312,7 @@ public class SupercontestService {
 
     public List<SupercontestEntryWeekAndPicks> gradePicks(String googleJwt) {
         User gradingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!gradingUser.getUserSecret().equals("109251928136244659820")) { // TODO: put as env variable
+        if (!gradingUser.getUserSecret().equals(adminId)) {
             throw new UnauthorizedException();
         }
         // score current EntryWeeks
@@ -298,35 +365,6 @@ public class SupercontestService {
         });
         supercontestEntryAndEntryWeeksRepository.saveAll(entries);
         return entryWeeksInCurrentWeek;
-    }
-
-    private SupercontestEntryWeekAndPicks getEntryWeekAndPicksHelper(
-            String googleJwt, String username, Integer weekNumber) {
-        Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
-                supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
-        if (weekAndPicksOptional.isEmpty()) {
-            throw new NotFoundException();
-        }
-        SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
-        weekAndPicks.getPicks().sort(Comparator.comparingInt(SupercontestPick::getGameId));
-        User viewingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!weekAndPicks.getUserSecret().equals(viewingUser.getUserSecret())) {
-            // hide picks that haven't started yet
-            weekAndPicks.getPicks().forEach(pick -> {
-                if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
-                    pick.setGameId(null);
-                    pick.setTimestamp(null);
-                    pick.setPickedTeam(null);
-                    pick.setOpposingTeam(null);
-                    pick.setHomeTeam(null);
-                    pick.setAwayTeam(null);
-                    pick.setHomeSpread(null);
-                }
-            });
-
-        }
-        weekAndPicks.setUserSecret(null);
-        return weekAndPicks;
     }
 
     private void setNullsToZero(SupercontestEntryPickStats team) {

@@ -112,19 +112,16 @@ public class SupercontestController {
         }
     }
 
-    @PutMapping("/entry/{username}/current-week")
-    public ResponseEntity<SupercontestEntryWeekAndPicks> saveCurrentEntryWeekAndPicks(
+    @PutMapping("/submit-picks")
+    public ResponseEntity<SupercontestEntryWeekAndPicks> submitPicks(
             @RequestHeader("Authorization") String googleJwt,
-            @PathVariable String username,
             @RequestBody List<SupercontestPick> picks) {
         try {
             SupercontestEntryWeekAndPicks savedWeekAndPicks =
-                    supercontestService.saveCurrentEntryWeekAndPicks(googleJwt, username, picks);
+                    supercontestService.submitPicks(googleJwt, picks);
             return new ResponseEntity<>(savedWeekAndPicks, HttpStatus.OK);
         } catch (NotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (UnauthorizedException e) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -148,6 +145,19 @@ public class SupercontestController {
         try {
             List<SupercontestEntryWeek> weeklyLeaderboard = supercontestService.getWeeklyLeaderboard(weekNumber);
             return new ResponseEntity<>(weeklyLeaderboard, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/best-picks/week/{weekNumber}")
+    public ResponseEntity<List<SupercontestEntryWeekAndPicks>> getBestPicksOfTheWeek(
+            @PathVariable Integer weekNumber) {
+        try {
+            List<SupercontestEntryWeekAndPicks> bestPicks = supercontestService.getBestPicksOfTheWeek(weekNumber);
+            return new ResponseEntity<>(bestPicks, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

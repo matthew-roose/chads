@@ -19,8 +19,8 @@ import chads.repository.sportsbook.SportsbookPoolAndAccountsRepository;
 import chads.repository.sportsbook.SportsbookPoolRepository;
 import chads.repository.sportsbook.SportsbookWeeklyUserStatsRepository;
 import chads.util.JwtUtils;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor(onConstructor_ = {@Autowired})
 public class SportsbookService {
 
     private final UserRepository userRepository;
@@ -44,6 +43,29 @@ public class SportsbookService {
     private final SportsbookPoolRepository sportsbookPoolRepository;
     private final SportsbookPoolAndAccountsRepository sportsbookPoolAndAccountsRepository;
     private final SportsbookWeeklyUserStatsRepository sportsbookWeeklyUserStatsRepository;
+
+    @Value("${adminId}")
+    private String adminId;
+
+    @Autowired
+    public SportsbookService(UserRepository userRepository, GameLineRepository gameLineRepository,
+                             SportsbookAccountRepository sportsbookAccountRepository,
+                             SportsbookAccountAndPoolsRepository sportsbookAccountAndPoolsRepository,
+                             SportsbookBetRepository sportsbookBetRepository,
+                             SportsbookBetLegRepository sportsbookBetLegRepository,
+                             SportsbookPoolRepository sportsbookPoolRepository,
+                             SportsbookPoolAndAccountsRepository sportsbookPoolAndAccountsRepository,
+                             SportsbookWeeklyUserStatsRepository sportsbookWeeklyUserStatsRepository) {
+        this.userRepository = userRepository;
+        this.gameLineRepository = gameLineRepository;
+        this.sportsbookAccountRepository = sportsbookAccountRepository;
+        this.sportsbookAccountAndPoolsRepository = sportsbookAccountAndPoolsRepository;
+        this.sportsbookBetRepository = sportsbookBetRepository;
+        this.sportsbookBetLegRepository = sportsbookBetLegRepository;
+        this.sportsbookPoolRepository = sportsbookPoolRepository;
+        this.sportsbookPoolAndAccountsRepository = sportsbookPoolAndAccountsRepository;
+        this.sportsbookWeeklyUserStatsRepository = sportsbookWeeklyUserStatsRepository;
+    }
 
     public void createAccount(String googleJwt) {
         User creatingUser = JwtUtils.getUserFromJwt(googleJwt);
@@ -65,13 +87,14 @@ public class SportsbookService {
     }
 
     public List<SportsbookBet> getAllBetsForUser(String googleJwt, String username) {
-        List<SportsbookBet> bets = sportsbookBetRepository.findAllByUsername(username);
+        List<SportsbookBet> bets = sportsbookBetRepository.findAllByUsernameOrderByIdDesc(username);
         bets.forEach(bet -> bet.obscureBetLegsForOtherViewers(googleJwt));
         return bets;
     }
 
     public List<SportsbookBet> getAllBetsForUserAndWeekNumber(String googleJwt, String username, Integer weekNumber) {
-        List<SportsbookBet> bets = sportsbookBetRepository.findAllByUsernameAndWeekNumber(username, weekNumber);
+        List<SportsbookBet> bets =
+                sportsbookBetRepository.findAllByUsernameAndWeekNumberOrderByIdDesc(username, weekNumber);
         bets.forEach(bet -> bet.obscureBetLegsForOtherViewers(googleJwt));
         return bets;
     }
@@ -83,7 +106,9 @@ public class SportsbookService {
     }
 
     public List<SportsbookWeeklyUserStats> getAllWeeklyStatsForUser(String username) {
-        return sportsbookWeeklyUserStatsRepository.findAllByUsername(username);
+        List<SportsbookWeeklyUserStats> userWeeks = sportsbookWeeklyUserStatsRepository.findAllByUsername(username);
+        userWeeks.forEach(this::setNullsToZero);
+        return userWeeks;
     }
 
     public SportsbookSeasonBreakdownStats getSeasonBreakdownStatsForUser(String username) {
@@ -106,9 +131,13 @@ public class SportsbookService {
                             stats.getWinsAndLossesByTotal().get(betLeg.getBetLegType());
                     statsForPickedTotal.addAmountWagered(bet.getWager());
                     if (betLeg.getResult() == Result.WIN) {
-                        statsForPickedTotal.addAmountWon(bet.getWager() * (betLeg.getOdds() - 1));
+                        double amountWon = bet.getWager() * (betLeg.getOdds() - 1);
+                        statsForPickedTotal.addAmountWon(amountWon);
+                        statsForPickedTotal.addAmountProfited(amountWon);
                     } else if (betLeg.getResult() == Result.LOSS) {
-                        statsForPickedTotal.addAmountLost(bet.getWager());
+                        double amountLost = bet.getWager();
+                        statsForPickedTotal.addAmountLost(amountLost);
+                        statsForPickedTotal.subtractAmountProfited(amountLost);
                     }
                     return;
                 }
@@ -152,6 +181,7 @@ public class SportsbookService {
             if (stats.getWinsAndLossesByFadedTeam().get(team).getAmountWagered() == 0.0) {
                 stats.getWinsAndLossesByFadedTeam().remove(team);
             }
+
         });
         return stats;
     }
@@ -261,23 +291,41 @@ public class SportsbookService {
     }
 
     public List<SportsbookWeeklyUserStats> getWeeklyLeaderboard(Integer weekNumber) {
-        return sportsbookWeeklyUserStatsRepository.findAllByWeekNumber(weekNumber);
+        List<SportsbookWeeklyUserStats> weeklyLeaderboard =
+                sportsbookWeeklyUserStatsRepository.findAllByWeekNumber(weekNumber);
+        weeklyLeaderboard.forEach(this::setNullsToZero);
+        return weeklyLeaderboard;
     }
 
-    public List<SportsbookWeeklyUserStats> getBestParlayForEveryWeek() {
-        return sportsbookWeeklyUserStatsRepository.getBestParlayForEveryWeek();
+    public List<SportsbookBet> getBestParlays() {
+        List<SportsbookBet> bestParlays = sportsbookBetRepository.getBestParlays();
+        bestParlays.forEach(parlay -> parlay.setUserSecret(null));
+        return bestParlays;
     }
 
-    public List<SportsbookWeeklyUserStats> getBiggestWinForEveryWeek() {
-        return sportsbookWeeklyUserStatsRepository.getBiggestWinForEveryWeek();
+    public List<SportsbookWeeklyUserStats> getBestWeeks() {
+        List<SportsbookWeeklyUserStats> winningWeeks = sportsbookWeeklyUserStatsRepository.getBestWeeks();
+        winningWeeks.forEach(this::setNullsToZero);
+        return winningWeeks;
     }
 
-    public List<SportsbookWeeklyUserStats> getBiggestLossForEveryWeek() {
-        return sportsbookWeeklyUserStatsRepository.getBiggestLossForEveryWeek();
+    public List<SportsbookWeeklyUserStats> getWorstWeeks() {
+        List<SportsbookWeeklyUserStats> losingWeeks = sportsbookWeeklyUserStatsRepository.getWorstWeeks();
+        losingWeeks.forEach(this::setNullsToZero);
+        return losingWeeks;
+    }
+
+    public List<SportsbookBet> getBestParlayOfTheWeek(Integer weekNumber) {
+        if (weekNumber < 1) {
+            throw new IllegalArgumentException();
+        }
+        return sportsbookBetRepository.getBestParlayOfTheWeek(weekNumber);
     }
 
     public List<SportsbookWeeklyUserStats> getPublicWeeklyStats() {
-        return sportsbookWeeklyUserStatsRepository.getPublicWeeklyStats();
+        List<SportsbookWeeklyUserStats> publicWeeks = sportsbookWeeklyUserStatsRepository.getPublicWeeklyStats();
+        publicWeeks.forEach(this::setNullsToZero);
+        return publicWeeks;
     }
 
     public List<SportsbookPublicMoneyStats> getPublicMoneyStats(Integer weekNumber) {
@@ -327,6 +375,10 @@ public class SportsbookService {
     }
 
     public SportsbookPool createPool(String googleJwt, SportsbookPool pool) {
+        // max buy in is 100
+        if (pool.getBuyIn() > 100) {
+            throw new IllegalArgumentException();
+        }
         // prize percentages should add up to 100
         if (pool.getWinLossPrizePct() + pool.getBestParlayPrizePct() != 100) {
             throw new IllegalArgumentException();
@@ -347,7 +399,17 @@ public class SportsbookService {
         }
         User creatingUser = creatingUserOptional.get();
         pool.setCreatorUsername(creatingUser.getUsername());
-        return sportsbookPoolRepository.save(pool);
+        sportsbookPoolRepository.save(pool);
+        // now join pool
+        Optional<SportsbookAccountAndPools> creatingAccountOptional =
+                sportsbookAccountAndPoolsRepository.findByUserSecret(creatingUser.getUserSecret());
+        if (creatingAccountOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        SportsbookAccountAndPools creatingAccount = creatingAccountOptional.get();
+        creatingAccount.joinPool(pool);
+        sportsbookAccountAndPoolsRepository.save(creatingAccount);
+        return pool;
     }
 
     public SportsbookAccountAndPools joinPool(String googleJwt, String poolName, String password) {
@@ -379,7 +441,7 @@ public class SportsbookService {
 
     public List<SportsbookAccount> gradeBets(String googleJwt) {
         User gradingUser = JwtUtils.getUserFromJwt(googleJwt);
-        if (!gradingUser.getUserSecret().equals("109251928136244659820")) { // TODO: put as env variable
+        if (!gradingUser.getUserSecret().equals(adminId)) {
             throw new UnauthorizedException();
         }
 
@@ -419,5 +481,20 @@ public class SportsbookService {
         });
         sportsbookBetRepository.saveAll(allOpenBets);
         return sportsbookAccountRepository.saveAll(allAccounts);
+    }
+
+    private void setNullsToZero(SportsbookWeeklyUserStats week) {
+        if (week.getAmountWagered() == null) {
+            week.setAmountWagered(0.0);
+        }
+        if (week.getAmountWon() == null) {
+            week.setAmountWon(0.0);
+        }
+        if (week.getAmountLost() == null) {
+            week.setAmountLost(0.0);
+        }
+        if (week.getProfit() == null) {
+            week.setProfit(0.0);
+        }
     }
 }

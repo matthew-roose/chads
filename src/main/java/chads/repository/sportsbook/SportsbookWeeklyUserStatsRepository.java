@@ -13,17 +13,13 @@ public interface SportsbookWeeklyUserStatsRepository
         extends JpaRepository<SportsbookWeeklyUserStats, SportsbookWeeklyUserStatsId> {
     List<SportsbookWeeklyUserStats> findAllByUsername(String username);
     List<SportsbookWeeklyUserStats> findAllByWeekNumber(Integer weekNumber);
-    @Query(value = "SELECT * FROM sb_weekly_user_stats oq WHERE oq.best_parlay_odds = (SELECT MAX(best_parlay_odds) " +
-            "FROM sb_weekly_user_stats sq WHERE sq.week_number = oq.week_number)", nativeQuery = true)
-    List<SportsbookWeeklyUserStats> getBestParlayForEveryWeek();
-    @Query(value = "SELECT * FROM sb_weekly_user_stats oq WHERE oq.profit = (SELECT MAX(profit) " +
-            "FROM sb_weekly_user_stats sq WHERE sq.week_number = oq.week_number)", nativeQuery = true)
-    List<SportsbookWeeklyUserStats> getBiggestWinForEveryWeek();
-    @Query(value = "SELECT * FROM sb_weekly_user_stats oq WHERE oq.profit = (SELECT MIN(profit) " +
-            "FROM sb_weekly_user_stats sq WHERE sq.week_number = oq.week_number)", nativeQuery = true)
-    List<SportsbookWeeklyUserStats> getBiggestLossForEveryWeek();
-    @Query(value = "SELECT '' as username, week_number, SUM(amount_won) as amount_won, SUM(amount_lost) as amount_lost, " +
-            "SUM(profit) as profit, MAX(best_parlay_odds) as best_parlay_odds FROM sb_weekly_user_stats " +
+    @Query(value = "SELECT * FROM sb_weekly_user_stats ORDER BY profit DESC LIMIT 10", nativeQuery = true)
+    List<SportsbookWeeklyUserStats> getBestWeeks();
+    @Query(value = "SELECT * FROM sb_weekly_user_stats ORDER BY profit LIMIT 10", nativeQuery = true)
+    List<SportsbookWeeklyUserStats> getWorstWeeks();
+    @Query(value = "SELECT '' as username, week_number, SUM(amount_wagered) as amount_wagered, " +
+            "SUM(amount_won) as amount_won, SUM(amount_lost) as amount_lost, SUM(profit) as profit, " +
+            "MAX(best_parlay_odds) as best_parlay_odds FROM sb_weekly_user_stats " +
             "GROUP BY week_number", nativeQuery = true)
     List<SportsbookWeeklyUserStats> getPublicWeeklyStats();
 }
