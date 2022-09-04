@@ -63,6 +63,7 @@ public class SupercontestService {
         this.supercontestEntryFadeStatsRepository = supercontestEntryFadeStatsRepository;
         this.supercontestPublicPickStatsRepository = supercontestPublicPickStatsRepository;
     }
+
     @Value("${adminId}")
     private String adminId;
 
@@ -94,18 +95,12 @@ public class SupercontestService {
 
     public List<SupercontestEntryPickStats> getEntryPickStats(String username) {
         List<SupercontestEntryPickStats> stats = supercontestEntryPickStatsRepository.findAllByUsername(username);
-        if (stats.isEmpty()) {
-            throw new NotFoundException();
-        }
         stats.forEach(this::setNullsToZero);
         return stats;
     }
 
     public List<SupercontestEntryFadeStats> getEntryFadeStats(String username) {
         List<SupercontestEntryFadeStats> stats = supercontestEntryFadeStatsRepository.findAllByUsername(username);
-        if (stats.isEmpty()) {
-            throw new NotFoundException();
-        }
         stats.forEach(this::setNullsToZero);
         return stats;
     }
