@@ -46,7 +46,7 @@ public class SupercontestPublicPickStats {
     private Integer timesPicked;
 
     @Column(name = "home_spread")
-    private Integer homeSpread;
+    private Double homeSpread;
 
     @Column(name = "home_score")
     private Integer homeScore;
