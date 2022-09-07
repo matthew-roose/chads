@@ -214,7 +214,7 @@ public class SportsbookService {
     // bet legs must include gameId and betLegType
     public SportsbookBet placeBet(String googleJwt, SportsbookBet bet) {
         // wager must be at least 1.00
-        if (bet.getWager() == null || bet.getWager() <= 1) {
+        if (bet.getWager() == null || bet.getWager() < 1) {
             throw new IllegalArgumentException();
         }
         // allow up to 10 legs for parlay
