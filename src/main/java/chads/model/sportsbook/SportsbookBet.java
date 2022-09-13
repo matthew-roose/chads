@@ -1,5 +1,6 @@
 package chads.model.sportsbook;
 
+import chads.enums.BetLegType;
 import chads.enums.BetType;
 import chads.enums.Result;
 import chads.model.User;
@@ -119,9 +120,21 @@ public class SportsbookBet {
         odds = 1.0;
         effectiveOdds = 1.0;
         betLegs.forEach(betLeg -> {
-            odds *= betLeg.getOdds();
-            if (betLeg.getResult() != Result.PUSH) {
-                effectiveOdds *= betLeg.getOdds();
+            if (betLeg.getBetLegType() == BetLegType.HOME_SPREAD ||
+                    betLeg.getBetLegType() == BetLegType.AWAY_SPREAD ||
+                    betLeg.getBetLegType() == BetLegType.OVER_TOTAL ||
+                    betLeg.getBetLegType() == BetLegType.UNDER_TOTAL) {
+                // use 1.9090909 as truer representation of -110 than 1.91 (rounded in DB)
+                odds *= 1.9090909;
+                if (betLeg.getResult() != Result.PUSH) {
+                    effectiveOdds *= 1.9090909;
+                }
+            } else  {
+                // can use ML odds
+                odds *= betLeg.getOdds();
+                if (betLeg.getResult() != Result.PUSH) {
+                    effectiveOdds *= betLeg.getOdds();
+                }
             }
         });
         toWinAmount = Double.valueOf(df.format(odds * wager - wager));

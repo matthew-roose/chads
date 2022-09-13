@@ -217,10 +217,6 @@ public class SportsbookService {
         if (bet.getWager() == null || bet.getWager() < 1) {
             throw new IllegalArgumentException();
         }
-        // allow up to 10 legs for parlay
-        if (bet.getBetLegs().size() > 10) {
-            throw new IllegalArgumentException();
-        }
         // get user by access token's user secret
         Optional<User> bettingUserOptional =
                 userRepository.findByUserSecret(JwtUtils.getUserFromJwt(googleJwt).getUserSecret());
