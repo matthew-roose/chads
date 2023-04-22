@@ -42,7 +42,11 @@ public class GameLineService {
         if (!postingUser.getUserSecret().equals(adminId)) {
             throw new UnauthorizedException();
         }
-        gameLines.forEach(gameLine -> gameLine.setWeekNumber(weekNumber));
+        gameLines.forEach(gameLine -> {
+            gameLine.setWeekNumber(weekNumber);
+            gameLine.setHomeMoneyline(convertAmericanToDecimalOdds(gameLine.getHomeMoneyline()));
+            gameLine.setAwayMoneyline(convertAmericanToDecimalOdds(gameLine.getAwayMoneyline()));
+        });
         return gameLineRepository.saveAll(gameLines);
     }
 
@@ -58,5 +62,15 @@ public class GameLineService {
                     gameLine.setAwayScore(scoreUpdate.getAwayScore());
                 }));
         return gameLineRepository.saveAll(gameLines);
+    }
+
+    private Double convertAmericanToDecimalOdds(Double americanOdds) {
+        if (americanOdds >= 100) {
+            return (americanOdds + 100) / 100.0;
+        } else if (americanOdds < -100) {
+            return (Math.abs(americanOdds) + 100.0) / Math.abs(americanOdds);
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SupercontestService {
@@ -36,10 +37,13 @@ public class SupercontestService {
     private final SupercontestPoolAndEntriesRepository supercontestPoolAndEntriesRepository;
     private final SupercontestEntryPickStatsRepository supercontestEntryPickStatsRepository;
     private final SupercontestEntryFadeStatsRepository supercontestEntryFadeStatsRepository;
+    private final SupercontestPublicEntryWeekRepository supercontestPublicEntryWeekRepository;
     private final SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository;
+    private final SupercontestHeadToHeadStatsRepository supercontestHeadToHeadStatsRepository;
 
     @Autowired
-    public SupercontestService(UserRepository userRepository, GameLineRepository gameLineRepository,
+    public SupercontestService(UserRepository userRepository,
+                               GameLineRepository gameLineRepository,
                                SupercontestEntryRepository supercontestEntryRepository,
                                SupercontestEntryAndEntryWeeksRepository supercontestEntryAndEntryWeeksRepository,
                                SupercontestEntryAndPoolsRepository supercontestEntryAndPoolsRepository,
@@ -49,7 +53,9 @@ public class SupercontestService {
                                SupercontestPoolAndEntriesRepository supercontestPoolAndEntriesRepository,
                                SupercontestEntryPickStatsRepository supercontestEntryPickStatsRepository,
                                SupercontestEntryFadeStatsRepository supercontestEntryFadeStatsRepository,
-                               SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository) {
+                               SupercontestPublicEntryWeekRepository supercontestPublicEntryWeekRepository,
+                               SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository,
+                               SupercontestHeadToHeadStatsRepository supercontestHeadToHeadStatsRepository) {
         this.userRepository = userRepository;
         this.gameLineRepository = gameLineRepository;
         this.supercontestEntryRepository = supercontestEntryRepository;
@@ -61,11 +67,16 @@ public class SupercontestService {
         this.supercontestPoolAndEntriesRepository = supercontestPoolAndEntriesRepository;
         this.supercontestEntryPickStatsRepository = supercontestEntryPickStatsRepository;
         this.supercontestEntryFadeStatsRepository = supercontestEntryFadeStatsRepository;
+        this.supercontestPublicEntryWeekRepository = supercontestPublicEntryWeekRepository;
         this.supercontestPublicPickStatsRepository = supercontestPublicPickStatsRepository;
+        this.supercontestHeadToHeadStatsRepository = supercontestHeadToHeadStatsRepository;
     }
 
     @Value("${adminId}")
     private String adminId;
+
+    @Value("${seasonStartTime}")
+    private Long seasonStartTime;
 
     public void createEntry(String googleJwt) {
         User creatingUser = JwtUtils.getUserFromJwt(googleJwt);
@@ -105,12 +116,23 @@ public class SupercontestService {
         return stats;
     }
 
+    public List<SupercontestPublicEntryWeek> getPublicEntryWeeks() {
+        return supercontestPublicEntryWeekRepository.getPublicEntryWeeks();
+    }
+
     public List<SupercontestPublicPickStats> getPublicPicksByWeekNumber(Integer weekNumber) {
         return supercontestPublicPickStatsRepository.findAllByWeekNumber(weekNumber);
     }
 
     public List<SupercontestPublicPickStats> getMostPopularPicksOfSeason() {
         return supercontestPublicPickStatsRepository.findMostPopularPicksOfSeason();
+    }
+
+    public List<SupercontestHeadToHeadStats> getHeadToHeadStats(String username1, String username2) {
+        List<SupercontestHeadToHeadStats> headToHeadStats =
+                supercontestHeadToHeadStatsRepository.getHeadToHeadStats(username1, username2);
+        return headToHeadStats.stream().filter(pick ->
+                pick.getTimestamp() <= Instant.now().toEpochMilli()).collect(Collectors.toList());
     }
 
     public SupercontestEntryWeekAndPicks getEntryWeekAndPicks(String googleJwt, String username, Integer weekNumber) {
@@ -126,6 +148,7 @@ public class SupercontestService {
             // hide picks that haven't started yet
             weekAndPicks.getPicks().forEach(pick -> {
                 if (pick.getTimestamp() > Instant.now().toEpochMilli()) {
+                    pick.setGameId(null);
                     pick.setTimestamp(null);
                     pick.setPickedTeam(null);
                     pick.setOpposingTeam(null);
@@ -282,7 +305,7 @@ public class SupercontestService {
     }
 
     public SupercontestEntryAndPools joinPool(String googleJwt, String poolName, String password) {
-        if (Instant.now().toEpochMilli() > 1662682800000L) {
+        if (Instant.now().toEpochMilli() > seasonStartTime) {
             throw new UnauthorizedException();
         }
         Optional<SupercontestPool> poolToBeJoinedOptional =

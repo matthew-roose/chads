@@ -19,6 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final SupercontestService supercontestService;
     private final SportsbookService sportsbookService;
+    private final SurvivorService survivorService;
 
     public User signUpOrSignIn(String googleJwt) {
         if (googleJwt.isEmpty()) {
@@ -29,7 +30,7 @@ public class UserService {
             User user = userRepository.save(userInfo);
             supercontestService.createEntry(googleJwt);
             sportsbookService.createAccount(googleJwt);
-            // also create eliminator?
+            survivorService.createEntry(googleJwt);
             return user;
         }
         Optional<User> existingUser = userRepository.findByUserSecret(userInfo.getUserSecret());

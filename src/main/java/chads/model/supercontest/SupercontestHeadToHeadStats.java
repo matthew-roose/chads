@@ -20,31 +20,37 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Entity
 @Immutable
-@Table(name = "sc_public_pick_stats")
-@IdClass(SupercontestPublicPickStatsId.class)
-public class SupercontestPublicPickStats {
+@Table(name = "sc_head_to_head_stats")
+@IdClass(SupercontestHeadToHeadStatsId.class)
+public class SupercontestHeadToHeadStats {
     @Id
+    @Column(name = "username")
+    private String username;
+
+    @Id
+    @Column(name = "game_id")
+    private Integer gameId;
+
     @Column(name = "week_number")
     private Integer weekNumber;
 
-    @Id
+    @Column(name = "timestamp")
+    private Long timestamp;
+
     @Column(name = "picked_team")
     @Enumerated(EnumType.STRING)
     private Team pickedTeam;
 
-    @Column(name = "opposing_team")
-    @Enumerated(EnumType.STRING)
-    private Team opposingTeam;
+    @Column(name = "home_spread")
+    private Double homeSpread;
 
     @Column(name = "home_team")
     @Enumerated(EnumType.STRING)
     private Team homeTeam;
 
-    @Column(name = "times_picked")
-    private Integer timesPicked;
-
-    @Column(name = "home_spread")
-    private Double homeSpread;
+    @Column(name = "away_team")
+    @Enumerated(EnumType.STRING)
+    private Team awayTeam;
 
     @Column(name = "home_score")
     private Integer homeScore;

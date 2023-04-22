@@ -1,4 +1,4 @@
-package chads.model.supercontest;
+package chads.model.survivor;
 
 import chads.enums.Result;
 import chads.enums.Team;
@@ -20,9 +20,9 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Entity
 @Immutable
-@Table(name = "sc_public_pick_stats")
-@IdClass(SupercontestPublicPickStatsId.class)
-public class SupercontestPublicPickStats {
+@Table(name = "sv_public_pick_stats")
+@IdClass(SurvivorPublicPickStatsId.class)
+public class SurvivorPublicPickStats {
     @Id
     @Column(name = "week_number")
     private Integer weekNumber;
@@ -42,9 +42,6 @@ public class SupercontestPublicPickStats {
 
     @Column(name = "times_picked")
     private Integer timesPicked;
-
-    @Column(name = "home_spread")
-    private Double homeSpread;
 
     @Column(name = "home_score")
     private Integer homeScore;

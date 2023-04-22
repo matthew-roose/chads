@@ -45,9 +45,9 @@ public class SportsbookAccount {
     public SportsbookAccount(String username, String userSecret) {
         this.username = username;
         this.userSecret = userSecret;
-        this.availableBalance = 1000.0;
+        this.availableBalance = 10000.0;
         this.pendingBalance = 0.0;
-        this.depositTotal = 1000;
+        this.depositTotal = 10000;
         this.cashOutTotal = 0;
         this.winLossTotal = 0.0;
         this.bestParlayOdds = 0.0;

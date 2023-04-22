@@ -1,4 +1,4 @@
-package chads.model.supercontest;
+package chads.model.survivor;
 
 import chads.enums.PoolJoinType;
 import lombok.Getter;
@@ -16,8 +16,8 @@ import javax.persistence.Table;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "supercontest_pool")
-public class SupercontestPool {
+@Table(name = "survivor_pool")
+public class SurvivorPool {
     @Id
     @Column(name = "pool_name")
     private String poolName;

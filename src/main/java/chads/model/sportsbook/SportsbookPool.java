@@ -34,8 +34,8 @@ public class SportsbookPool {
     @Column(name = "best_parlay_prize_pct")
     private Integer bestParlayPrizePct;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "join_type")
+    @Enumerated(EnumType.STRING)
     private PoolJoinType joinType;
 
     @Column(name = "password")

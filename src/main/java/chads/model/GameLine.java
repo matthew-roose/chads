@@ -74,7 +74,7 @@ public class GameLine {
             case AWAY_SPREAD:
             case OVER_TOTAL:
             case UNDER_TOTAL:
-                return 1.9090909;
+                return 1.90909;
             case HOME_MONEYLINE:
                 return homeMoneyline;
             case AWAY_MONEYLINE:
@@ -147,7 +147,7 @@ public class GameLine {
         }
     }
 
-    private Team calculateWinningTeam() {
+    public Team calculateWinningTeam() {
         if (homeScore > awayScore) {
             return homeTeam;
         } else if (homeScore < awayScore) {

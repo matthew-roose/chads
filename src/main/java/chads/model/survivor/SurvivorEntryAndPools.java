@@ -1,5 +1,6 @@
-package chads.model.supercontest;
+package chads.model.survivor;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,10 +18,11 @@ import java.util.Set;
 
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "supercontest_entry")
-public class SupercontestEntryAndPools {
+@Table(name = "survivor_entry")
+public class SurvivorEntryAndPools {
     @Id
     @Column(name = "username")
     private String username;
@@ -28,28 +30,31 @@ public class SupercontestEntryAndPools {
     @Column(name = "user_secret")
     private String userSecret;
 
-    @Column(name = "season_score")
-    private Double seasonScore;
+    @Column(name = "score")
+    private Double score;
 
-    @Column(name = "season_wins")
-    private Integer seasonWins;
+    @Column(name = "wins")
+    private Integer wins;
 
-    @Column(name = "season_losses")
-    private Integer seasonLosses;
+    @Column(name = "losses")
+    private Integer losses;
 
-    @Column(name = "season_pushes")
-    private Integer seasonPushes;
+    @Column(name = "pushes")
+    private Integer pushes;
+
+    @Column(name = "current_streak")
+    private Integer currentStreak;
 
     @ManyToMany(
             fetch = FetchType.EAGER,
             cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name = "supercontest_pool_entry",
+            name = "survivor_pool_entry",
             joinColumns = @JoinColumn(name = "username"),
             inverseJoinColumns = @JoinColumn(name = "pool_name"))
-    private Set<SupercontestPool> pools;
+    private Set<SurvivorPool> pools;
 
-    public void joinPool(SupercontestPool poolToBeJoined) {
+    public void joinPool(SurvivorPool poolToBeJoined) {
         pools.add(poolToBeJoined);
     }
 }

@@ -65,8 +65,9 @@ public class GameLineController {
             List<GameLine> savedLines = gameLineService.postLines(googleJwt, weekNumber, gameLines);
             return new ResponseEntity<>(savedLines, HttpStatus.OK);
         } catch (UnauthorizedException e) {
-            // called by user other than admin
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

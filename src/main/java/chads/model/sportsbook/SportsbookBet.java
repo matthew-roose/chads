@@ -124,10 +124,10 @@ public class SportsbookBet {
                     betLeg.getBetLegType() == BetLegType.AWAY_SPREAD ||
                     betLeg.getBetLegType() == BetLegType.OVER_TOTAL ||
                     betLeg.getBetLegType() == BetLegType.UNDER_TOTAL) {
-                // use 1.9090909 as truer representation of -110 than 1.91 (rounded in DB)
-                odds *= 1.9090909;
+                // use 1.90909 as truer representation of -110 than 1.91 (rounded in DB)
+                odds *= 1.90909;
                 if (betLeg.getResult() != Result.PUSH) {
-                    effectiveOdds *= 1.9090909;
+                    effectiveOdds *= 1.90909;
                 }
             } else  {
                 // can use ML odds

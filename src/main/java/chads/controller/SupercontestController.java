@@ -29,8 +29,7 @@ public class SupercontestController {
     private final SupercontestService supercontestService;
 
     @GetMapping("/entry/{username}")
-    public ResponseEntity<SupercontestEntryAndPools> getEntryAndPools(
-            @PathVariable String username) {
+    public ResponseEntity<SupercontestEntryAndPools> getEntryAndPools(@PathVariable String username) {
         try {
             SupercontestEntryAndPools entry = supercontestService.getEntryAndPools(username);
             return new ResponseEntity<>(entry, HttpStatus.OK);
@@ -75,6 +74,16 @@ public class SupercontestController {
         }
     }
 
+    @GetMapping("/public-picks/record")
+    public ResponseEntity<List<SupercontestPublicEntryWeek>> getPublicEntryWeeks() {
+        try {
+            List<SupercontestPublicEntryWeek> publicEntryWeeks = supercontestService.getPublicEntryWeeks();
+            return new ResponseEntity<>(publicEntryWeeks, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/public-picks/week/{weekNumber}")
     public ResponseEntity<List<SupercontestPublicPickStats>> getPublicPicksByWeekNumber(
             @PathVariable Integer weekNumber) {
@@ -91,6 +100,18 @@ public class SupercontestController {
         try {
             List<SupercontestPublicPickStats> publicPicks = supercontestService.getMostPopularPicksOfSeason();
             return new ResponseEntity<>(publicPicks, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/h2h-stats/{username1}/{username2}")
+    public ResponseEntity<List<SupercontestHeadToHeadStats>> getHeadToHeadStats(
+            @PathVariable String username1, @PathVariable String username2) {
+        try {
+            List<SupercontestHeadToHeadStats> headToHeadStats =
+                    supercontestService.getHeadToHeadStats(username1, username2);
+            return new ResponseEntity<>(headToHeadStats, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -24,8 +24,8 @@ public class SupercontestPoolAndEntries {
     @Column(name = "buy_in")
     private Integer buyIn;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "join_type")
+    @Enumerated(EnumType.STRING)
     private PoolJoinType joinType;
 
     @ManyToMany(

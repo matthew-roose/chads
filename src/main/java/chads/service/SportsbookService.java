@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SportsbookService {
@@ -47,8 +48,12 @@ public class SportsbookService {
     @Value("${adminId}")
     private String adminId;
 
+    @Value("${seasonStartTime}")
+    private Long seasonStartTime;
+
     @Autowired
-    public SportsbookService(UserRepository userRepository, GameLineRepository gameLineRepository,
+    public SportsbookService(UserRepository userRepository,
+                             GameLineRepository gameLineRepository,
                              SportsbookAccountRepository sportsbookAccountRepository,
                              SportsbookAccountAndPoolsRepository sportsbookAccountAndPoolsRepository,
                              SportsbookBetRepository sportsbookBetRepository,
@@ -194,7 +199,7 @@ public class SportsbookService {
             throw new NotFoundException();
         }
         SportsbookAccount account = accountOptional.get();
-        account.deposit(1000);
+        account.deposit(10000);
         return sportsbookAccountRepository.save(account);
     }
 
@@ -236,11 +241,34 @@ public class SportsbookService {
         }
         List<GameLine> officialGameLines = gameLineRepository.findAllInCurrentWeek();
         bet.getBetLegs().forEach(betLeg -> {
-            // check if bet includes multiple legs for same game
-            long countOfGameId = bet.getBetLegs().stream().filter(otherBetLeg ->
-                    otherBetLeg.getGameId().equals(betLeg.getGameId())).count();
-            if (countOfGameId > 1) {
+            List<BetLegType> betLegTypesOnTheSameGame = bet.getBetLegs().stream().filter(otherBetLeg ->
+                    otherBetLeg.getGameId().equals(betLeg.getGameId()))
+                    .map(SportsbookBetLeg::getBetLegType).collect(Collectors.toList());
+            // allow up to 2 picks on some game (side and total)
+            if (betLegTypesOnTheSameGame.size() > 2) {
                 throw new IllegalArgumentException();
+            }
+            if (betLegTypesOnTheSameGame.size() == 2) {
+                // if first pick is on side, other pick should be on total
+                if (betLeg.getBetLegType() == BetLegType.HOME_SPREAD
+                        || betLeg.getBetLegType() == BetLegType.AWAY_SPREAD
+                        || betLeg.getBetLegType() == BetLegType.HOME_MONEYLINE
+                        || betLeg.getBetLegType() == BetLegType.AWAY_MONEYLINE) {
+                    if (!(betLegTypesOnTheSameGame.contains(BetLegType.OVER_TOTAL)
+                            || betLegTypesOnTheSameGame.contains(BetLegType.UNDER_TOTAL))) {
+                        throw new IllegalArgumentException();
+                    }
+                }
+                // if first pick is on total, other pick should be on side
+                if (betLeg.getBetLegType() == BetLegType.OVER_TOTAL
+                        || betLeg.getBetLegType() == BetLegType.UNDER_TOTAL) {
+                    if (!(betLegTypesOnTheSameGame.contains(BetLegType.HOME_SPREAD)
+                            || betLegTypesOnTheSameGame.contains(BetLegType.AWAY_SPREAD)
+                            || betLegTypesOnTheSameGame.contains(BetLegType.HOME_MONEYLINE)
+                            || betLegTypesOnTheSameGame.contains(BetLegType.AWAY_MONEYLINE))) {
+                        throw new IllegalArgumentException();
+                    }
+                }
             }
             // get corresponding game line
             Optional<GameLine> pickedGameOptional = officialGameLines.stream().filter(gameLine ->
@@ -409,7 +437,7 @@ public class SportsbookService {
     }
 
     public SportsbookAccountAndPools joinPool(String googleJwt, String poolName, String password) {
-        if (Instant.now().toEpochMilli() > 1662682800000L) {
+        if (Instant.now().toEpochMilli() > seasonStartTime) {
             throw new UnauthorizedException();
         }
         Optional<SportsbookPool> poolToBeJoinedOptional =

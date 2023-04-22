@@ -105,6 +105,69 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `sc_entry_fade_stats` AS se
 
 CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `sc_public_pick_stats` AS select `sew`.`week_number` AS `week_number`,`sp`.`picked_team` AS `picked_team`,`sp`.`opposing_team` AS `opposing_team`,`sp`.`home_team` AS `home_team`,count(0) AS `times_picked`,`sp`.`home_spread` AS `home_spread`,`sp`.`home_score` AS `home_score`,`sp`.`away_score` AS `away_score`,`sp`.`result` AS `result` from (`supercontest_entry_week` `sew` join `supercontest_pick` `sp` on((`sew`.`id` = `sp`.`entry_week_id`))) group by `sew`.`week_number`,`sp`.`picked_team`,`sp`.`opposing_team`,`sp`.`home_team`,`sp`.`home_spread`,`sp`.`home_score`,`sp`.`away_score`,`sp`.`result` order by `times_picked` desc;
 
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `sc_public_entry_weeks` AS select `supercontest_entry_week`.`week_number` AS `id`,`supercontest_entry_week`.`week_number` AS `username`,`supercontest_entry_week`.`week_number` AS `user_secret`,`supercontest_entry_week`.`week_number` AS `week_number`,SUM(`supercontest_entry_week`.`week_score`) AS `week_score`,sum(`supercontest_entry_week`.`week_wins`) AS `week_wins`,sum(`supercontest_entry_week`.`week_losses`) AS `week_losses`,sum(`supercontest_entry_week`.`week_pushes`) AS `week_pushes` from `supercontest_entry_week` group by `supercontest_entry_week`.`week_number`;
+
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `sc_head_to_head_stats` AS select `sew`.`username` AS `username`,`sew`.`week_number` AS `week_number`,`sp`.`timestamp` AS `timestamp`,`sp`.`game_id` AS `game_id`,`sp`.`picked_team` AS `picked_team`,`sp`.`home_spread` AS `home_spread`,`sp`.`home_team` AS `home_team`,`sp`.`away_team` AS `away_team`,`sp`.`home_score` AS `home_score`,`sp`.`away_score` AS `away_score`,`sp`.`result` AS `result` from (`supercontest_entry_week` `sew` join `supercontest_pick` `sp` on((`sp`.`entry_week_id` = `sew`.`id`))) order by `sp`.`game_id`,`sew`.`username`;
+
+CREATE TABLE `survivor_entry` (
+  `username` varchar(45) NOT NULL,
+  `user_secret` varchar(45) NOT NULL,
+  `score` decimal(3,1) NOT NULL,
+  `wins` int NOT NULL,
+  `losses` int NOT NULL,
+  `pushes` int NOT NULL,
+  `current_streak` int NOT NULL,
+  PRIMARY KEY (`username`),
+  KEY `sv_entry_user_secret_fk_idx` (`user_secret`),
+  CONSTRAINT `sv_entry_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
+  CONSTRAINT `sv_entry_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `survivor_pick` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(45) NOT NULL,
+  `user_secret` varchar(45) NOT NULL,
+  `game_id` int NOT NULL,
+  `week_number` int NOT NULL,
+  `timestamp` bigint NOT NULL,
+  `picked_team` varchar(45) NOT NULL,
+  `opposing_team` varchar(45) NOT NULL,
+  `home_team` varchar(45) NOT NULL,
+  `away_team` varchar(45) NOT NULL,
+  `home_score` int DEFAULT NULL,
+  `away_score` int DEFAULT NULL,
+  `result` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sv_pick_username_fk_idx` (`username`),
+  KEY `sv_pick_user_secret_fk_idx` (`user_secret`),
+  KEY `sv_pick_game_id_fk_idx` (`game_id`),
+  CONSTRAINT `sv_pick_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
+  CONSTRAINT `sv_pick_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`),
+  CONSTRAINT `sv_pick_game_id_fk` FOREIGN KEY (`game_id`) REFERENCES `game_line` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `survivor_pool` (
+  `pool_name` varchar(45) NOT NULL,
+  `creator_username` varchar(45) NOT NULL,
+  `buy_in` int NOT NULL,
+  `join_type` varchar(45) NOT NULL,
+  `password` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`pool_name`),
+  KEY `sv_pool_creator_username_fk_idx` (`creator_username`),
+  CONSTRAINT `sv_pool_creator_username_fk` FOREIGN KEY (`creator_username`) REFERENCES `user` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `survivor_pool_entry` (
+  `username` varchar(45) NOT NULL,
+  `pool_name` varchar(45) NOT NULL,
+  PRIMARY KEY (`username`,`pool_name`),
+  KEY `sv_pool_entry_pool_name_fk_idx` (`pool_name`),
+  CONSTRAINT `sv_pool_entry_pool_name_fk` FOREIGN KEY (`pool_name`) REFERENCES `survivor_pool` (`pool_name`),
+  CONSTRAINT `sv_pool_entry_username_fk` FOREIGN KEY (`username`) REFERENCES `survivor_entry` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `sv_public_pick_stats` AS select week_number, picked_team, opposing_team, home_team, count(0) AS `times_picked`, home_score, away_score, result from (survivor_pick) group by week_number, picked_team, opposing_team, home_team, home_score, away_score, result order by times_picked desc;
+
 CREATE TABLE `sportsbook_account` (
   `username` varchar(45) NOT NULL,
   `user_secret` varchar(45) NOT NULL,
