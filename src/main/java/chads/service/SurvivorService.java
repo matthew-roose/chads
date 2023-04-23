@@ -277,16 +277,13 @@ public class SurvivorService {
                 if (pickedGame.getHomeScore() != null) {
                     pick.setHomeScore(pickedGame.getHomeScore());
                     pick.setAwayScore(pickedGame.getAwayScore());
-                    Team winningTeam = pickedGame.calculateWinningTeam();
-                    if (winningTeam == pick.getPickedTeam()) {
-                        pick.setResult(Result.WIN);
+                    pick.setResult(pick.calculateResult());
+                    if (pick.getResult() == Result.WIN) {
                         entry.recordWin();
-                    } else if (winningTeam == null) {
-                        pick.setResult(Result.PUSH);
-                        entry.recordPush();
-                    } else {
-                        pick.setResult(Result.LOSS);
+                    } else if (pick.getResult() == Result.LOSS) {
                         entry.recordLoss();
+                    } else if (pick.getResult() == Result.PUSH ){
+                        entry.recordPush();
                     }
                 }
             });

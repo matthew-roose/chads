@@ -67,9 +67,104 @@ public class SportsbookBetLeg {
     @JoinColumn(name = "bet_id", referencedColumnName = "id", insertable = false, updatable = false)
     private SportsbookBet bet;
 
+    public void setHomeSpreadAndGameTotal(Double homeSpread, Double gameTotal, Double teaserPoints) {
+        if (teaserPoints == null
+                || betLegType == BetLegType.HOME_MONEYLINE
+                || betLegType == BetLegType.AWAY_MONEYLINE) {
+            setHomeSpread(homeSpread);
+            setGameTotal(gameTotal);
+        } else {
+            if (betLegType == BetLegType.HOME_SPREAD) {
+                setHomeSpread(homeSpread + teaserPoints);
+                setGameTotal(gameTotal);
+            } else if (betLegType == BetLegType.AWAY_SPREAD) {
+                setHomeSpread(homeSpread - teaserPoints);
+                setGameTotal(gameTotal);
+            } else if (betLegType == BetLegType.OVER_TOTAL) {
+                setHomeSpread(homeSpread);
+                setGameTotal(gameTotal - teaserPoints);
+            } else if (betLegType == BetLegType.UNDER_TOTAL) {
+                setHomeSpread(homeSpread);
+                setGameTotal(gameTotal + teaserPoints);
+            }
+        }
+    }
+
     public void setScoresAndResult(GameLine gameLine) {
         homeScore = gameLine.getHomeScore();
         awayScore = gameLine.getAwayScore();
-        result = gameLine.calculateBetLegResult(betLegType);
+        result = calculateBetLegResult();
+    }
+
+    private Result calculateBetLegResult() {
+        if (homeScore == null) {
+            // bet shouldn't be graded if game hasn't been scored
+            throw new IllegalArgumentException();
+        }
+
+        switch (betLegType) {
+            case HOME_SPREAD:
+            case AWAY_SPREAD:
+                if (betLegType == calculateSpreadWinner()) {
+                    return Result.WIN;
+                } else if (calculateSpreadWinner() == null) {
+                    return Result.PUSH;
+                } else {
+                    return Result.LOSS;
+                }
+            case HOME_MONEYLINE:
+            case AWAY_MONEYLINE:
+                if (betLegType == calculateMoneylineWinner()) {
+                    return Result.WIN;
+                } else if (calculateMoneylineWinner() == null) {
+                    return Result.PUSH;
+                } else {
+                    return Result.LOSS;
+                }
+            case OVER_TOTAL:
+            case UNDER_TOTAL:
+                if (betLegType == calculateTotalWinner()) {
+                    return Result.WIN;
+                } else if (calculateTotalWinner() == null) {
+                    return Result.PUSH;
+                } else {
+                    return Result.LOSS;
+                }
+            default:
+                // unreachable
+                throw new IllegalArgumentException();
+        }
+    }
+
+    private BetLegType calculateSpreadWinner() {
+        // homeSpread should already be set to the teased number if applicable
+        double homeAdjustedScore = homeScore + homeSpread;
+        if (homeAdjustedScore > awayScore) {
+            return BetLegType.HOME_SPREAD;
+        } else if (homeAdjustedScore < awayScore) {
+            return BetLegType.AWAY_SPREAD;
+        } else {
+            return null; // represents push
+        }
+    }
+
+    private BetLegType calculateMoneylineWinner() {
+        if (homeScore > awayScore) {
+            return BetLegType.HOME_MONEYLINE;
+        } else if (homeScore < awayScore) {
+            return BetLegType.AWAY_MONEYLINE;
+        } else {
+            return null;
+        }
+    }
+
+    private BetLegType calculateTotalWinner() {
+        if (homeScore + awayScore > gameTotal) {
+            return BetLegType.OVER_TOTAL;
+        } else if (homeScore + awayScore < gameTotal) {
+            return BetLegType.UNDER_TOTAL;
+        } else {
+            return null;
+        }
     }
 }

@@ -2,7 +2,6 @@ package chads.service;
 
 import chads.enums.PoolJoinType;
 import chads.enums.Result;
-import chads.enums.Team;
 import chads.exception.NotFoundException;
 import chads.exception.UnauthorizedException;
 import chads.model.GameLine;
@@ -226,13 +225,7 @@ public class SupercontestService {
             if (pickedGame.getHomeScore() != null) {
                 newPick.setHomeScore(pickedGame.getHomeScore());
                 newPick.setAwayScore(pickedGame.getAwayScore());
-                if (pickedGame.calculateCoveringTeam() == newPick.getPickedTeam()) {
-                    newPick.setResult(Result.WIN);
-                } else if (pickedGame.calculateCoveringTeam() == null) {
-                    newPick.setResult(Result.PUSH);
-                } else {
-                    newPick.setResult(Result.LOSS);
-                }
+                newPick.setResult(newPick.calculateResult());
             }
         });
         weekAndPicks.updatePicks(newPicks);
@@ -353,16 +346,13 @@ public class SupercontestService {
                 if (pickedGame.getHomeScore() != null) {
                     pick.setHomeScore(pickedGame.getHomeScore());
                     pick.setAwayScore(pickedGame.getAwayScore());
-                    Team coveringTeam = pickedGame.calculateCoveringTeam();
-                    if (coveringTeam == pick.getPickedTeam()) {
-                        pick.setResult(Result.WIN);
+                    pick.setResult(pick.calculateResult());
+                    if (pick.getResult() == Result.WIN) {
                         entryWeek.recordWin();
-                    } else if (coveringTeam == null) {
-                        pick.setResult(Result.PUSH);
-                        entryWeek.recordPush();
-                    } else {
-                        pick.setResult(Result.LOSS);
+                    } else if (pick.getResult() == Result.LOSS) {
                         entryWeek.recordLoss();
+                    } else if (pick.getResult() == Result.PUSH) {
+                        entryWeek.recordPush();
                     }
                 }
             });

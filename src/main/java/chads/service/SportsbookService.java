@@ -280,9 +280,9 @@ public class SportsbookService {
             GameLine pickedGame = pickedGameOptional.get();
             // set fields on bet legs
             betLeg.setTimestamp(pickedGame.getTimestamp());
-            betLeg.setOdds(pickedGame.getOddsByBetLegType(betLeg.getBetLegType()));
-            betLeg.setHomeSpread(pickedGame.getHomeSpread());
-            betLeg.setGameTotal(pickedGame.getGameTotal());
+            betLeg.setOdds(pickedGame.getOddsByBetLegType(betLeg.getBetLegType(), bet.getTeaserPoints()));
+            betLeg.setHomeSpreadAndGameTotal(
+                    pickedGame.getHomeSpread(), pickedGame.getGameTotal(), bet.getTeaserPoints());
             betLeg.setHomeTeam(pickedGame.getHomeTeam());
             betLeg.setAwayTeam(pickedGame.getAwayTeam());
             // check if any bet leg has already started

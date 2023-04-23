@@ -62,4 +62,30 @@ public class SupercontestPick {
     @ManyToOne
     @JoinColumn(name = "entry_week_id", referencedColumnName = "id", insertable = false, updatable = false)
     private SupercontestEntryWeekAndPicks entryWeek;
+
+    public Result calculateResult() {
+        if (homeScore == null) {
+            return null;
+        }
+        double homeAdjustedScore = homeScore + homeSpread;
+        if (pickedTeam == homeTeam) {
+            if (homeAdjustedScore > awayScore) {
+                return Result.WIN;
+            } else if (homeAdjustedScore < awayScore) {
+                return Result.LOSS;
+            } else {
+                return Result.PUSH;
+            }
+        } else if (pickedTeam == awayTeam) {
+            if (awayScore > homeAdjustedScore) {
+                return Result.WIN;
+            } else if (awayScore < homeAdjustedScore) {
+                return Result.LOSS;
+            } else {
+                return Result.PUSH;
+            }
+        }
+        // picked team must be home team or away team
+        throw new IllegalArgumentException();
+    }
 }

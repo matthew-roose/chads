@@ -22,6 +22,7 @@ public class SportsbookSeasonBreakdownStats {
         this.winsAndLossesByBetType = new HashMap<>();
         winsAndLossesByBetType.put(BetType.STRAIGHT, new SportsbookWinLossProfit());
         winsAndLossesByBetType.put(BetType.PARLAY, new SportsbookWinLossProfit());
+        winsAndLossesByBetType.put(BetType.TEASER, new SportsbookWinLossProfit());
         this.winsAndLossesByPickedTeam = new HashMap<>();
         EnumSet.allOf(Team.class).forEach(team -> winsAndLossesByPickedTeam.put(team, new SportsbookWinLossProfit()));
         this.winsAndLossesByFadedTeam = new HashMap<>();

@@ -65,4 +65,29 @@ public class SurvivorPick {
     @ManyToOne
     @JoinColumn(name = "username", referencedColumnName = "username", insertable = false, updatable = false)
     private SurvivorEntry entry;
+
+    public Result calculateResult() {
+        if (homeScore == null) {
+            return null;
+        }
+        if (pickedTeam == homeTeam) {
+            if (homeScore > awayScore) {
+                return Result.WIN;
+            } else if (homeScore < awayScore) {
+                return Result.LOSS;
+            } else {
+                return Result.PUSH;
+            }
+        } else if (pickedTeam == awayTeam) {
+            if (awayScore > homeScore) {
+                return Result.WIN;
+            } else if (awayScore < homeScore) {
+                return Result.LOSS;
+            } else {
+                return Result.PUSH;
+            }
+        }
+        // picked team must be home team or away team
+        throw new IllegalArgumentException();
+    }
 }

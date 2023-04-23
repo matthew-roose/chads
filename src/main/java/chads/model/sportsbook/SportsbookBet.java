@@ -1,6 +1,5 @@
 package chads.model.sportsbook;
 
-import chads.enums.BetLegType;
 import chads.enums.BetType;
 import chads.enums.Result;
 import chads.model.User;
@@ -43,6 +42,9 @@ public class SportsbookBet {
     @Enumerated(EnumType.STRING)
     private BetType betType;
 
+    @Column(name = "teaser_points")
+    private Double teaserPoints;
+
     @Column(name = "odds")
     private Double odds;
 
@@ -76,6 +78,7 @@ public class SportsbookBet {
         this.placedTimestamp = betToCopy.getPlacedTimestamp();
         this.weekNumber = betToCopy.getWeekNumber();
         this.betType = betToCopy.getBetType();
+        this.teaserPoints = betToCopy.getTeaserPoints();
         this.odds = betToCopy.getOdds();
         this.effectiveOdds = betToCopy.getEffectiveOdds();
         this.wager = betToCopy.getWager();
@@ -107,7 +110,11 @@ public class SportsbookBet {
 
     public void calculateAndSetBetType() {
         if (betLegs.size() > 1) {
-            betType = BetType.PARLAY;
+            if (teaserPoints == null) {
+                betType = BetType.PARLAY;
+            } else {
+                betType = BetType.TEASER;
+            }
         } else if (betLegs.size() == 1) {
             betType = BetType.STRAIGHT;
         } else {
@@ -120,21 +127,9 @@ public class SportsbookBet {
         odds = 1.0;
         effectiveOdds = 1.0;
         betLegs.forEach(betLeg -> {
-            if (betLeg.getBetLegType() == BetLegType.HOME_SPREAD ||
-                    betLeg.getBetLegType() == BetLegType.AWAY_SPREAD ||
-                    betLeg.getBetLegType() == BetLegType.OVER_TOTAL ||
-                    betLeg.getBetLegType() == BetLegType.UNDER_TOTAL) {
-                // use 1.90909 as truer representation of -110 than 1.91 (rounded in DB)
-                odds *= 1.90909;
-                if (betLeg.getResult() != Result.PUSH) {
-                    effectiveOdds *= 1.90909;
-                }
-            } else  {
-                // can use ML odds
-                odds *= betLeg.getOdds();
-                if (betLeg.getResult() != Result.PUSH) {
-                    effectiveOdds *= betLeg.getOdds();
-                }
+            odds *= betLeg.getOdds();
+            if (betLeg.getResult() != Result.PUSH) {
+                effectiveOdds *= betLeg.getOdds();
             }
         });
         toWinAmount = Double.valueOf(df.format(odds * wager - wager));
