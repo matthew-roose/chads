@@ -39,20 +39,21 @@ CREATE TABLE `supercontest_entry` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `supercontest_entry_week` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(45) NOT NULL,
-  `user_secret` varchar(45) NOT NULL,
-  `week_number` int NOT NULL,
-  `week_score` decimal(2,1) NOT NULL,
-  `week_wins` int NOT NULL,
-  `week_losses` int NOT NULL,
-  `week_pushes` int NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username_week_number_UNIQUE` (`username`,`week_number`),
-  KEY `sc_entry_week_username_fk_idx` (`username`),
-  KEY `sc_entry_week_user_secret_fk_idx` (`user_secret`),
-  CONSTRAINT `sc_entry_week_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
-  CONSTRAINT `sc_entry_week_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
+   `id` int NOT NULL AUTO_INCREMENT,
+   `username` varchar(45) NOT NULL,
+   `user_secret` varchar(45) NOT NULL,
+   `week_number` int NOT NULL,
+   `week_score` decimal(2,1) NOT NULL,
+   `week_wins` int NOT NULL,
+   `week_losses` int NOT NULL,
+   `week_pushes` int NOT NULL,
+   `has_made_picks` tinyint DEFAULT NULL,
+   PRIMARY KEY (`id`),
+   UNIQUE KEY `username_week_number_UNIQUE` (`username`,`week_number`),
+   KEY `sc_entry_week_username_fk_idx` (`username`),
+   KEY `sc_entry_week_user_secret_fk_idx` (`user_secret`),
+   CONSTRAINT `sc_entry_week_user_secret_fk` FOREIGN KEY (`user_secret`) REFERENCES `user` (`user_secret`),
+   CONSTRAINT `sc_entry_week_username_fk` FOREIGN KEY (`username`) REFERENCES `user` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `supercontest_pick` (

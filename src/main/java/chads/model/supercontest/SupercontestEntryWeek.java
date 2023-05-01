@@ -46,6 +46,9 @@ public class SupercontestEntryWeek {
     @Column(name = "week_pushes")
     private Integer weekPushes;
 
+    @Column(name = "has_made_picks")
+    private Boolean hasMadePicks;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "username", insertable = false, updatable = false)

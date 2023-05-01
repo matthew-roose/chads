@@ -241,6 +241,7 @@ public class SupercontestService {
             }
         });
         weekAndPicks.updatePicks(newPicks);
+        weekAndPicks.setHasMadePicks(true);
         // TODO: remove user secret from this and below methods
         return supercontestEntryWeekAndPicksRepository.save(weekAndPicks);
     }
