@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -91,7 +92,9 @@ public class SupercontestService {
         Optional<SupercontestEntryAndPools> entryAndPoolsOptional =
                 supercontestEntryAndPoolsRepository.findById(username);
         if (entryAndPoolsOptional.isEmpty()) {
-            throw new NotFoundException();
+            SupercontestEntryAndPools noData = new SupercontestEntryAndPools();
+            noData.setPools(new HashSet<>());
+            return noData;
         }
         SupercontestEntryAndPools entryAndPools = entryAndPoolsOptional.get();
         entryAndPools.setUserSecret(null);
@@ -100,7 +103,14 @@ public class SupercontestService {
     }
 
     public SupercontestEntryAndEntryWeeks getAllEntryWeeksForUser(String username) {
-        return supercontestEntryAndEntryWeeksRepository.findByUsername(username);
+        SupercontestEntryAndEntryWeeks entryWeekAndPicks =
+                supercontestEntryAndEntryWeeksRepository.findByUsername(username);
+        if (entryWeekAndPicks == null) {
+            SupercontestEntryAndEntryWeeks noData = new SupercontestEntryAndEntryWeeks();
+            noData.setSupercontestEntryWeeks(new ArrayList<>());
+            return noData;
+        }
+        return entryWeekAndPicks;
     }
 
     public List<SupercontestEntryPickStats> getEntryPickStats(String username) {
@@ -138,7 +148,9 @@ public class SupercontestService {
         Optional<SupercontestEntryWeekAndPicks> weekAndPicksOptional =
                 supercontestEntryWeekAndPicksRepository.findByUsernameAndWeekNumber(username, weekNumber);
         if (weekAndPicksOptional.isEmpty()) {
-            throw new NotFoundException();
+            SupercontestEntryWeekAndPicks noData = new SupercontestEntryWeekAndPicks();
+            noData.setPicks(new ArrayList<>());
+            return noData;
         }
         SupercontestEntryWeekAndPicks weekAndPicks = weekAndPicksOptional.get();
         weekAndPicks.getPicks().sort(Comparator.comparingInt(SupercontestPick::getGameId));

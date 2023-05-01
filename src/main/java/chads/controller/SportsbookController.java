@@ -40,22 +40,6 @@ public class SportsbookController {
         try {
             SportsbookAccountAndPools account = sportsbookService.getAccountAndPools(username);
             return new ResponseEntity<>(account, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/account/{username}/bets")
-    public ResponseEntity<List<SportsbookBet>> getAllBetsForUser(
-            @RequestHeader("Authorization") String googleJwt,
-            @PathVariable String username) {
-        try {
-            List<SportsbookBet> bets = sportsbookService.getAllBetsForUser(googleJwt, username);
-            return new ResponseEntity<>(bets, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -70,22 +54,6 @@ public class SportsbookController {
             List<SportsbookBet> bets =
                     sportsbookService.getAllBetsForUserAndWeekNumber(googleJwt, username, weekNumber);
             return new ResponseEntity<>(bets, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/account/{username}/open-bets")
-    public ResponseEntity<List<SportsbookBet>> getOpenBetsForUser(
-            @RequestHeader("Authorization") String googleJwt,
-            @PathVariable String username) {
-        try {
-            List<SportsbookBet> bets = sportsbookService.getOpenBetsForUser(googleJwt, username);
-            return new ResponseEntity<>(bets, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -117,6 +85,8 @@ public class SportsbookController {
         try {
             SportsbookAccount account = sportsbookService.deposit(googleJwt);
             return new ResponseEntity<>(account, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -131,6 +101,8 @@ public class SportsbookController {
         try {
             SportsbookAccount account = sportsbookService.cashOut(googleJwt, cashOutAmount);
             return new ResponseEntity<>(account, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

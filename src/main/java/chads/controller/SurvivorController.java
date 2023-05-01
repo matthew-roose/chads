@@ -38,8 +38,6 @@ public class SurvivorController {
         try {
             SurvivorEntryAndPools entry = survivorService.getEntryAndPools(username);
             return new ResponseEntity<>(entry, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -52,8 +50,6 @@ public class SurvivorController {
         try {
             SurvivorEntryAndPicks entry = survivorService.getEntryAndPicks(googleJwt, username);
             return new ResponseEntity<>(entry, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

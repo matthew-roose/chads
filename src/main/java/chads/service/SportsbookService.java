@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +84,9 @@ public class SportsbookService {
         Optional<SportsbookAccountAndPools> accountAndPoolsOptional =
                 sportsbookAccountAndPoolsRepository.findById(username);
         if (accountAndPoolsOptional.isEmpty()) {
-            throw new NotFoundException();
+            SportsbookAccountAndPools noData = new SportsbookAccountAndPools();
+            noData.setPools(new HashSet<>());
+            return noData;
         }
         SportsbookAccountAndPools accountAndPools = accountAndPoolsOptional.get();
         accountAndPools.setUserSecret(null);
@@ -91,21 +94,9 @@ public class SportsbookService {
         return accountAndPools;
     }
 
-    public List<SportsbookBet> getAllBetsForUser(String googleJwt, String username) {
-        List<SportsbookBet> bets = sportsbookBetRepository.findAllByUsernameOrderByIdDesc(username);
-        bets.forEach(bet -> bet.obscureBetLegsForOtherViewers(googleJwt));
-        return bets;
-    }
-
     public List<SportsbookBet> getAllBetsForUserAndWeekNumber(String googleJwt, String username, Integer weekNumber) {
         List<SportsbookBet> bets =
                 sportsbookBetRepository.findAllByUsernameAndWeekNumberOrderByIdDesc(username, weekNumber);
-        bets.forEach(bet -> bet.obscureBetLegsForOtherViewers(googleJwt));
-        return bets;
-    }
-
-    public List<SportsbookBet> getOpenBetsForUser(String googleJwt, String username) {
-        List<SportsbookBet> bets = sportsbookBetRepository.findAllByUsernameAndResultIsNull(username);
         bets.forEach(bet -> bet.obscureBetLegsForOtherViewers(googleJwt));
         return bets;
     }

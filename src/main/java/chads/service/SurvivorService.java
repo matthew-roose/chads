@@ -29,7 +29,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,8 +87,9 @@ public class SurvivorService {
         Optional<SurvivorEntryAndPools> entryAndPoolsOptional =
                 survivorEntryAndPoolsRepository.findById(username);
         if (entryAndPoolsOptional.isEmpty()) {
-            throw new NotFoundException();
-        }
+            SurvivorEntryAndPools noData = new SurvivorEntryAndPools();
+            noData.setPools(new HashSet<>());
+            return noData;        }
         SurvivorEntryAndPools entryAndPools = entryAndPoolsOptional.get();
         entryAndPools.setUserSecret(null);
         entryAndPools.getPools().forEach(pool -> pool.setPassword(null));
@@ -97,7 +100,9 @@ public class SurvivorService {
         Optional<SurvivorEntryAndPicks> entryAndPicksOptional =
                 survivorEntryAndPicksRepository.findById(username);
         if (entryAndPicksOptional.isEmpty()) {
-            throw new NotFoundException();
+            SurvivorEntryAndPicks noData = new SurvivorEntryAndPicks();
+            noData.setPicks(new ArrayList<>());
+            return noData;
         }
         SurvivorEntryAndPicks entry = entryAndPicksOptional.get();
         entry.getPicks().sort(Comparator.comparingInt(SurvivorPick::getWeekNumber));

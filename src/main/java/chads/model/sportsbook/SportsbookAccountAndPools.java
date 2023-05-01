@@ -13,7 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -53,7 +53,7 @@ public class SportsbookAccountAndPools {
             name = "sportsbook_pool_entry",
             joinColumns = @JoinColumn(name="username"),
             inverseJoinColumns = @JoinColumn(name="pool_name"))
-    private List<SportsbookPool> pools;
+    private Set<SportsbookPool> pools;
 
     public void joinPool(SportsbookPool poolToBeJoined) {
         pools.add(poolToBeJoined);

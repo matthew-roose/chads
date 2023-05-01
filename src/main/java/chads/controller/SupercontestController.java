@@ -33,8 +33,6 @@ public class SupercontestController {
         try {
             SupercontestEntryAndPools entry = supercontestService.getEntryAndPools(username);
             return new ResponseEntity<>(entry, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -55,8 +53,6 @@ public class SupercontestController {
         try {
             List<SupercontestEntryPickStats> stats = supercontestService.getEntryPickStats(username);
             return new ResponseEntity<>(stats, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -67,8 +63,6 @@ public class SupercontestController {
         try {
             List<SupercontestEntryFadeStats> stats = supercontestService.getEntryFadeStats(username);
             return new ResponseEntity<>(stats, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -126,8 +120,6 @@ public class SupercontestController {
             SupercontestEntryWeekAndPicks entry =
                     supercontestService.getEntryWeekAndPicks(googleJwt, username, weekNumber);
             return new ResponseEntity<>(entry, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
