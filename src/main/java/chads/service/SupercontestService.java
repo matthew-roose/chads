@@ -21,11 +21,11 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class SupercontestService {
 
+    private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final GameLineRepository gameLineRepository;
     private final SupercontestEntryRepository supercontestEntryRepository;
@@ -42,7 +42,8 @@ public class SupercontestService {
     private final SupercontestHeadToHeadStatsRepository supercontestHeadToHeadStatsRepository;
 
     @Autowired
-    public SupercontestService(UserRepository userRepository,
+    public SupercontestService(NotificationService notificationService,
+                               UserRepository userRepository,
                                GameLineRepository gameLineRepository,
                                SupercontestEntryRepository supercontestEntryRepository,
                                SupercontestEntryAndEntryWeeksRepository supercontestEntryAndEntryWeeksRepository,
@@ -56,6 +57,7 @@ public class SupercontestService {
                                SupercontestPublicEntryWeekRepository supercontestPublicEntryWeekRepository,
                                SupercontestPublicPickStatsRepository supercontestPublicPickStatsRepository,
                                SupercontestHeadToHeadStatsRepository supercontestHeadToHeadStatsRepository) {
+        this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.gameLineRepository = gameLineRepository;
         this.supercontestEntryRepository = supercontestEntryRepository;
@@ -140,8 +142,9 @@ public class SupercontestService {
     public List<SupercontestHeadToHeadStats> getHeadToHeadStats(String username1, String username2) {
         List<SupercontestHeadToHeadStats> headToHeadStats =
                 supercontestHeadToHeadStatsRepository.getHeadToHeadStats(username1, username2);
-        return headToHeadStats.stream().filter(pick ->
-                pick.getTimestamp() <= Instant.now().toEpochMilli()).collect(Collectors.toList());
+        return headToHeadStats;
+//        return headToHeadStats.stream().filter(pick ->
+//                pick.getTimestamp() <= Instant.now().toEpochMilli()).collect(Collectors.toList());
     }
 
     public SupercontestEntryWeekAndPicks getEntryWeekAndPicks(String googleJwt, String username, Integer weekNumber) {

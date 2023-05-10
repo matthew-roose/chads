@@ -19,6 +19,9 @@ CREATE TABLE `user` (
   `first_name` varchar(45) NOT NULL,
   `last_name` varchar(45) NOT NULL,
   `email` varchar(45) NOT NULL,
+  `phone_number` char(12) DEFAULT NULL,
+  `opt_in_new_games_notification` tinyint DEFAULT NULL,
+  `opt_in_missing_picks_notification` tinyint DEFAULT NULL,
   PRIMARY KEY (`username`),
   UNIQUE KEY `user_secret_UNIQUE` (`user_secret`),
   UNIQUE KEY `email_UNIQUE` (`email`)

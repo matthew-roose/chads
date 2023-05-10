@@ -2,6 +2,7 @@ package chads.service;
 
 import chads.exception.NotFoundException;
 import chads.model.User;
+import chads.model.UserPreferences;
 import chads.repository.UserRepository;
 import chads.util.JwtUtils;
 import lombok.AllArgsConstructor;
@@ -42,5 +43,29 @@ public class UserService {
 
     public List<String> getAllUsernames() {
         return userRepository.findAll().stream().map(User::getUsername).sorted().collect(Collectors.toList());
+    }
+
+    public User getUserPreferences(String googleJwt) {
+        User userInfo = JwtUtils.getUserFromJwt(googleJwt);
+        Optional<User> userPreferencesOptional = userRepository.findByUserSecret(userInfo.getUserSecret());
+        if (userPreferencesOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        return userPreferencesOptional.get();
+    }
+
+    public User saveUserPreferences(String googleJwt, UserPreferences userPreferences) {
+        User userInfo = JwtUtils.getUserFromJwt(googleJwt);
+        Optional<User> userPreferencesOptional = userRepository.findByUserSecret(userInfo.getUserSecret());
+        if (userPreferencesOptional.isEmpty()) {
+            throw new NotFoundException();
+        }
+        User preferencesToUpdate = userPreferencesOptional.get();
+        preferencesToUpdate.setPhoneNumber(userPreferences.getPhoneNumber());
+        preferencesToUpdate.setOptInNewGamesNotification(
+                userPreferences.getOptInNewGamesNotification());
+        preferencesToUpdate.setOptInMissingPicksNotification(
+                userPreferences.getOptInMissingPicksNotification());
+        return userRepository.save(preferencesToUpdate);
     }
 }

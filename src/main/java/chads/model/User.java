@@ -32,4 +32,13 @@ public class User {
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "opt_in_new_games_notification")
+    private Boolean optInNewGamesNotification;
+
+    @Column(name = "opt_in_missing_picks_notification")
+    private Boolean optInMissingPicksNotification;
 }

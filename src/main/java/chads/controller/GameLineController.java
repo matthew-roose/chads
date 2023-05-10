@@ -4,6 +4,7 @@ import chads.exception.UnauthorizedException;
 import chads.model.GameLine;
 import chads.model.ScoreUpdate;
 import chads.service.GameLineService;
+import chads.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import java.util.List;
 public class GameLineController {
 
     private final GameLineService gameLineService;
+    private final NotificationService notificationService;
 
     @GetMapping("/current-week-number")
     public ResponseEntity<Integer> getCurrentWeekNumber() {
@@ -63,6 +65,7 @@ public class GameLineController {
             @RequestBody List<GameLine> gameLines) {
         try {
             List<GameLine> savedLines = gameLineService.postLines(googleJwt, weekNumber, gameLines);
+            notificationService.sendNewGamesNotification(googleJwt);
             return new ResponseEntity<>(savedLines, HttpStatus.OK);
         } catch (UnauthorizedException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
