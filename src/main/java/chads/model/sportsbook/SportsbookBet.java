@@ -19,7 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "sportsbook_bet")
 public class SportsbookBet {
-    private static final DecimalFormat df = new DecimalFormat("0.00");
+    private static final DecimalFormat df = new DecimalFormat("0.00000");
 
     @Id
     @Column

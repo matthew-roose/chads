@@ -56,8 +56,8 @@ public class GameLine {
     @Column(name = "away_score")
     private Integer awayScore;
 
-    public Double getOddsByBetLegType(BetLegType betLegType, Double teaserPoints) {
-        if (teaserPoints == null) {
+    public Double getOddsByBetLegType(BetLegType betLegType, Double teaserPoints, Double boughtPoints) {
+        if (teaserPoints == null && boughtPoints == null) {
             switch (betLegType) {
                 case HOME_SPREAD:
                 case AWAY_SPREAD:
@@ -73,30 +73,49 @@ public class GameLine {
                     throw new IllegalArgumentException();
             }
         }
-        // can't tease moneylines
+        // can't tease or buy points on moneylines
         if (betLegType == BetLegType.HOME_MONEYLINE || betLegType == BetLegType.AWAY_MONEYLINE) {
             throw new IllegalArgumentException();
         }
-        if (teaserPoints == 6.0) {
-            return 1.38461;
-        } else if (teaserPoints == 6.5) {
-            return 1.35714;
-        } else if (teaserPoints == 7.0) {
-            return 1.32258;
-        } else if (teaserPoints == 7.5) {
-            return 1.28571;
-        } else if (teaserPoints == 8.0) {
-            return 1.26666;
-        } else if (teaserPoints == 8.5) {
-            return 1.25;
-        } else if (teaserPoints == 9.0) {
-            return 1.22222;
-        } else if (teaserPoints == 9.5) {
-            return 1.21276;
-        } else if (teaserPoints == 10.0) {
-            return 1.2;
+        // can't both tease and buy points
+        if (teaserPoints != null && boughtPoints != null) {
+            throw new IllegalArgumentException();
         }
-        // illegal number of teaser points
+
+        if (teaserPoints != null) {
+            if (teaserPoints == 6.0) {
+                return 1.38461;
+            } else if (teaserPoints == 6.5) {
+                return 1.35714;
+            } else if (teaserPoints == 7.0) {
+                return 1.32258;
+            } else if (teaserPoints == 7.5) {
+                return 1.28571;
+            } else if (teaserPoints == 8.0) {
+                return 1.26666;
+            } else if (teaserPoints == 8.5) {
+                return 1.25;
+            } else if (teaserPoints == 9.0) {
+                return 1.22222;
+            } else if (teaserPoints == 9.5) {
+                return 1.21276;
+            } else if (teaserPoints == 10.0) {
+                return 1.2;
+            }
+            // illegal number of teaser points
+            throw new IllegalArgumentException();
+        }
+
+        if (boughtPoints == 0.5) {
+            return 1.8;
+        } else if (boughtPoints == 1.0) {
+            return 1.66667;
+        } else if (boughtPoints == 1.5) {
+            return 1.57143;
+        } else if (boughtPoints == 2.0) {
+            return 1.5;
+        }
+        // illegal number of bought points
         throw new IllegalArgumentException();
     }
 }

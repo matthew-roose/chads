@@ -35,6 +35,9 @@ public class SportsbookBetLeg {
     @Enumerated(EnumType.STRING)
     private BetLegType betLegType;
 
+    @Column(name = "bought_points")
+    private Double boughtPoints;
+
     @Column(name = "odds")
     private Double odds;
 
@@ -67,25 +70,45 @@ public class SportsbookBetLeg {
     @JoinColumn(name = "bet_id", referencedColumnName = "id", insertable = false, updatable = false)
     private SportsbookBet bet;
 
-    public void setHomeSpreadAndGameTotal(Double homeSpread, Double gameTotal, Double teaserPoints) {
-        if (teaserPoints == null
+    public void setHomeSpreadAndGameTotal(
+            Double homeSpread, Double gameTotal, Double teaserPoints, Double boughtPoints) {
+        if (teaserPoints != null && boughtPoints != null) {
+            throw new IllegalArgumentException();
+        }
+        if ((teaserPoints == null && boughtPoints == null)
                 || betLegType == BetLegType.HOME_MONEYLINE
                 || betLegType == BetLegType.AWAY_MONEYLINE) {
             setHomeSpread(homeSpread);
             setGameTotal(gameTotal);
         } else {
-            if (betLegType == BetLegType.HOME_SPREAD) {
-                setHomeSpread(homeSpread + teaserPoints);
-                setGameTotal(gameTotal);
-            } else if (betLegType == BetLegType.AWAY_SPREAD) {
-                setHomeSpread(homeSpread - teaserPoints);
-                setGameTotal(gameTotal);
-            } else if (betLegType == BetLegType.OVER_TOTAL) {
-                setHomeSpread(homeSpread);
-                setGameTotal(gameTotal - teaserPoints);
-            } else if (betLegType == BetLegType.UNDER_TOTAL) {
-                setHomeSpread(homeSpread);
-                setGameTotal(gameTotal + teaserPoints);
+            if (teaserPoints != null) {
+                if (betLegType == BetLegType.HOME_SPREAD) {
+                    setHomeSpread(homeSpread + teaserPoints);
+                    setGameTotal(gameTotal);
+                } else if (betLegType == BetLegType.AWAY_SPREAD) {
+                    setHomeSpread(homeSpread - teaserPoints);
+                    setGameTotal(gameTotal);
+                } else if (betLegType == BetLegType.OVER_TOTAL) {
+                    setHomeSpread(homeSpread);
+                    setGameTotal(gameTotal - teaserPoints);
+                } else if (betLegType == BetLegType.UNDER_TOTAL) {
+                    setHomeSpread(homeSpread);
+                    setGameTotal(gameTotal + teaserPoints);
+                }
+            } else {
+                if (betLegType == BetLegType.HOME_SPREAD) {
+                    setHomeSpread(homeSpread + boughtPoints);
+                    setGameTotal(gameTotal);
+                } else if (betLegType == BetLegType.AWAY_SPREAD) {
+                    setHomeSpread(homeSpread - boughtPoints);
+                    setGameTotal(gameTotal);
+                } else if (betLegType == BetLegType.OVER_TOTAL) {
+                    setHomeSpread(homeSpread);
+                    setGameTotal(gameTotal - boughtPoints);
+                } else if (betLegType == BetLegType.UNDER_TOTAL) {
+                    setHomeSpread(homeSpread);
+                    setGameTotal(gameTotal + boughtPoints);
+                }
             }
         }
     }
