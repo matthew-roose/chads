@@ -20,6 +20,7 @@ CREATE TABLE `user` (
   `last_name` varchar(45) NOT NULL,
   `email` varchar(45) NOT NULL,
   `phone_number` char(12) DEFAULT NULL,
+  `carrier` varchar(45) DEFAULT NULL,
   `opt_in_new_games_notification` tinyint DEFAULT NULL,
   `opt_in_missing_picks_notification` tinyint DEFAULT NULL,
   PRIMARY KEY (`username`),

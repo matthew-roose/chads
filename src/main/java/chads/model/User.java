@@ -36,6 +36,9 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "carrier")
+    private String carrier;
+
     @Column(name = "opt_in_new_games_notification")
     private Boolean optInNewGamesNotification;
 

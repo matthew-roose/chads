@@ -8,7 +8,7 @@ import java.util.Base64;
 public class JwtUtils {
     public static User getUserFromJwt(String googleJwt) {
         if (googleJwt.isEmpty()) {
-            return new User("none", "none", "none", "none", "none", null, null, null);
+            return new User("none", "none", "none", "none", "none", null, null, null, null);
         }
         String base64payload = googleJwt.split("\\.")[1];
         JSONObject payload = new JSONObject(decode(base64payload));
@@ -17,7 +17,7 @@ public class JwtUtils {
         String last_name = payload.getString("family_name");
         String email = payload.getString("email");
         String username = email.split("@")[0];
-        return new User(username, userId, first_name, last_name, email, null, null, null);
+        return new User(username, userId, first_name, last_name, email, null, null, null, null);
     }
 
     private static String decode(String googleJwt) {

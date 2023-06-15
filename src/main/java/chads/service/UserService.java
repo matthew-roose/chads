@@ -62,6 +62,7 @@ public class UserService {
         }
         User preferencesToUpdate = userPreferencesOptional.get();
         preferencesToUpdate.setPhoneNumber(userPreferences.getPhoneNumber());
+        preferencesToUpdate.setCarrier(userPreferences.getCarrier());
         preferencesToUpdate.setOptInNewGamesNotification(
                 userPreferences.getOptInNewGamesNotification());
         preferencesToUpdate.setOptInMissingPicksNotification(
