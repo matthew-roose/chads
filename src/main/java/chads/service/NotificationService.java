@@ -52,7 +52,7 @@ public class NotificationService {
         this.gameLineRepository = gameLineRepository;
         this.supercontestEntryWeekAndPicksRepository = supercontestEntryWeekAndPicksRepository;
         this.survivorPickRepository = survivorPickRepository;
-        sendGrid = new SendGrid("key");
+        sendGrid = new SendGrid("sendGridKey");
     }
 
     public void sendNewGamesNotification(String googleJwt) {
