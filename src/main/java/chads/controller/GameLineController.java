@@ -109,4 +109,9 @@ public class GameLineController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/health-check")
+    public ResponseEntity<HttpStatus> healthCheck() {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
