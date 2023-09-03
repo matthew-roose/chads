@@ -5,6 +5,9 @@ import chads.model.GameLine;
 import chads.model.ScoreUpdate;
 import chads.service.GameLineService;
 import chads.service.NotificationService;
+import chads.service.SportsbookService;
+import chads.service.SupercontestService;
+import chads.service.SurvivorService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,9 @@ public class GameLineController {
 
     private final GameLineService gameLineService;
     private final NotificationService notificationService;
+    private final SportsbookService sportsbookService;
+    private final SupercontestService supercontestService;
+    private final SurvivorService survivorService;
 
     @GetMapping("/current-week-number")
     public ResponseEntity<Integer> getCurrentWeekNumber() {
@@ -83,6 +89,20 @@ public class GameLineController {
         try {
             List<GameLine> updatedLines = gameLineService.scoreGames(googleJwt, scoreUpdates);
             return new ResponseEntity<>(updatedLines, HttpStatus.OK);
+        } catch (UnauthorizedException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/grade-all-contests")
+    public ResponseEntity<HttpStatus> gradeAllContests(@RequestHeader("Authorization") String googleJwt) {
+        try {
+            sportsbookService.gradeBets(googleJwt);
+            supercontestService.gradePicks(googleJwt);
+            survivorService.gradePicks(googleJwt);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (UnauthorizedException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (Exception e) {

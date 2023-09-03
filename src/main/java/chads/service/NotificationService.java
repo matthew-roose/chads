@@ -27,11 +27,13 @@ import java.util.Optional;
 public class NotificationService {
 
     private final static String NEW_GAMES_MESSAGE =
-            "This week's games are now available at https://chads.be!";
+            "This week's games are now available at https://chads.be! Opt out: https://chads.be/settings";
     private final static String MISSING_SUPERCONTEST_PICKS_MESSAGE =
-            "Friendly reminder to make your 5 Supercontest picks at https://chads.be/supercontest/make-picks!";
+            "Friendly reminder to make your 5 Supercontest picks at https://chads.be/supercontest/make-picks! " +
+                    "Opt out: https://chads.be/settings";
     private final static String MISSING_SURVIVOR_PICKS_MESSAGE =
-            "Friendly reminder to make your Survivor pick at https://chads.be/survivor/make-picks!";
+            "Friendly reminder to make your Survivor pick at https://chads.be/survivor/make-picks! " +
+                    "Opt out: https://chads.be/settings";
 
     private final UserRepository userRepository;
     private final GameLineRepository gameLineRepository;
